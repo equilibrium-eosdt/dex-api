@@ -1,4 +1,4 @@
-# mm-api
+# Equilibrium dex api
 
 Nodejs api service for equilibrium decentralized exchange
 
