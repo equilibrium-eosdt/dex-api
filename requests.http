@@ -1,0 +1,66 @@
+###
+GET http://127.0.0.1:3000/orders/WBTC HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/trades/WBTC HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/trades/WBTC?page=0&pageSize=5 HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
+
+###
+POST http://127.0.0.1:3000/deposit HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
+  "token": "WBTC",
+  "amount": 0.01
+}
+
+###
+POST http://127.0.0.1:3000/withdraw HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
+  "token": "WBTC",
+  "amount": 0.01
+}
+
+###
+POST http://127.0.0.1:3000/marketOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "amount": 1,
+  "direction": "Buy"
+}
+
+###
+GET http://127.0.0.1:3000/marketOrder/16448489453521 HTTP/1.1
+
+###
+POST http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "limitPrice": 34940,
+  "amount": 1,
+  "direction": "Buy"
+}
+
+###
+GET http://127.0.0.1:3000/limitOrder/16448490953732 HTTP/1.1
