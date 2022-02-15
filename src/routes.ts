@@ -10,7 +10,7 @@ import {
 	createMarketOrder,
 } from "./api";
 
-export const getOrdersByToken = async (
+export const routes = async (
 	server: FastifyInstance,
 	options: RouteShorthandOptions
 ) => {

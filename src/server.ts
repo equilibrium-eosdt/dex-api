@@ -2,7 +2,7 @@ import Fastify from "fastify";
 import "dotenv/config";
 
 import { PORT } from "./constants";
-import { getOrdersByToken } from "./routes";
+import { routes } from "./routes";
 
 const server = Fastify({ logger: false });
 
@@ -17,7 +17,7 @@ if (!globalThis.fetch) {
 	}
 }
 
-server.register(getOrdersByToken);
+server.register(routes);
 
 server.listen(PORT, (err) => {
 	if (err) {
