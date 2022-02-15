@@ -15,7 +15,7 @@ import {
 	AMOUNT_PRECISION,
 	TRANSFER_PRECISION,
 } from "./constants";
-import { promisify, handleTx, getMessageId } from "./utils";
+import { promisify, handleTx, getMessageId, getError } from "./utils";
 
 const api$ = getApiCreator("Gens", "rxjs")(CHAIN_NODE);
 let chainId: number | undefined = undefined;
@@ -61,11 +61,11 @@ const genesis$ = api$.pipe(
 				if (response.ok) {
 					return response.json();
 				} else {
-					return of({ error: true, message: `Error ${response.status}` });
+					return of(getError(`Error ${response.status}`));
 				}
 			}),
 			catchError((err) => {
-				return of({ error: true, message: err.message });
+				return of(getError(err.message));
 			})
 		)
 	)
@@ -147,8 +147,7 @@ export const deposit = ({
 
 	const depositPair = keyring?.getPair(address);
 
-	if (!depositPair)
-		return { success: false, data: { error: "Address not found in keyring" } };
+	if (!depositPair) return getError("Address not found in keyring");
 
 	const deposit$ = api$.pipe(
 		switchMap((api) =>
@@ -179,8 +178,7 @@ export const withdraw = ({
 
 	const withdrawPair = keyring?.getPair(address);
 
-	if (!withdrawPair)
-		return { success: false, data: { error: "Address not found in keyring" } };
+	if (!withdrawPair) return getError("Address not found in keyring");
 
 	const withdraw$ = api$.pipe(
 		switchMap((api) =>
@@ -260,7 +258,7 @@ export const createLimitOrder = ({
 		},
 	});
 
-	return { success: true, data: { messageId } };
+	return { success: true, payload: { messageId } };
 };
 
 export const createMarketOrder = ({
@@ -273,15 +271,14 @@ export const createMarketOrder = ({
 	amount: number | string;
 	direction: "Buy" | "Sell";
 	address: string;
-}): { success: boolean; data: { error?: string; messageId?: string } } => {
+}) => {
 	const createOrderAsset = assetFromToken(token);
 	const createOrderDirection = direction;
 	const createOrderAmount = AMOUNT_PRECISION.times(amount).toString();
 
 	const pair = keyring?.getPair(address);
 
-	if (!pair)
-		return { success: false, data: { error: "Address not found in keyring" } };
+	if (!pair) return getError("Address not found in keyring");
 
 	const createOrder$ = api$.pipe(
 		switchMap((api) =>
@@ -324,11 +321,10 @@ export const createMarketOrder = ({
 		},
 	});
 
-	return { success: true, data: { messageId } };
+	return { success: true, payload: { messageId } };
 };
 
 export const getMessage = (messageId: string) => {
-	if (!messages.has(messageId))
-		return { success: false, pending: false, payload: "Message not found" };
+	if (!messages.has(messageId)) return getError("Message not found");
 	return { ...messages.get(messageId) };
 };

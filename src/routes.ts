@@ -18,7 +18,6 @@ export const routes = async (
 		// @ts-expect-error
 		const token = request.params.token;
 
-		// TODO: mb we should whitelist tokens
 		if (typeof token !== "string") {
 			response.status(422).send(new Error("Wrong token in request"));
 		}

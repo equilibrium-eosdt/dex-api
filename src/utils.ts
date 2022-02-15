@@ -12,6 +12,12 @@ export const getMessageId = () => {
 	return Date.now().toString() + nonce.toString();
 };
 
+export const getError = (error: string) => ({
+	success: false,
+	pending: false,
+	payload: { error },
+});
+
 export const promisify = (o$: Observable<unknown>) => {
 	return new Promise((resolve, reject) => {
 		const subscription = o$.subscribe({

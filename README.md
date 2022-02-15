@@ -249,7 +249,7 @@ Service will immediately respond with message id
 ```
 {
   "success": true,
-  "data": {
+  "payload": {
     "messageId": "16448487391741"
   }
 }
@@ -316,7 +316,7 @@ You will recieve immediate response with message id.
 ```
 {
   "success": true,
-  "data": {
+  "payload": {
     "messageId": "16448490953732"
   }
 }
