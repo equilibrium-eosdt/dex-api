@@ -5,8 +5,10 @@ import {
 	getOrders,
 	getBestPrices,
 	getTrades,
+	getBalances,
 	getMessage,
 	createLimitOrder,
+	cancelLimitOrder,
 	createMarketOrder,
 } from "./api";
 
@@ -67,6 +69,18 @@ export const routes = async (
 		return await getTrades(token, acc, page, pageSize);
 	});
 
+	server.get("/balances/:token/:acc", async (request, response) => {
+		// @ts-expect-error
+		const { token, acc } = request.params;
+
+		// TODO: mb we should whitelist tokens
+		if (typeof token !== "string" || typeof acc !== "string") {
+			response.status(422).send(new Error("Wrong token in request"));
+		}
+
+		return await getBalances(token, acc);
+	});
+
 	server.post("/deposit", async (request, response) => {
 		// @ts-expect-error
 		const { token, amount, address } = request.body;
@@ -124,6 +138,27 @@ export const routes = async (
 			amount,
 			limitPrice,
 			direction,
+			address,
+		});
+	});
+
+	server.delete("/limitOrder", async (request, response) => {
+		// @ts-expect-error
+		const { token, price, orderId, address } = request.body;
+
+		if (
+			typeof address !== "string" ||
+			typeof token !== "string" ||
+			typeof price !== "number" ||
+			typeof orderId !== "number"
+		) {
+			response.status(422).send(new Error("Wrong parameters in request body"));
+		}
+
+		return await cancelLimitOrder({
+			token,
+			price,
+			orderId,
 			address,
 		});
 	});

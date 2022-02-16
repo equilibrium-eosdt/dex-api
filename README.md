@@ -141,7 +141,7 @@ Use pagination when possible
 GET http://127.0.0.1:3000/trades/WBTC?page=0&pageSize=5 HTTP/1.1
 ```
 
-Defaults are `page=0` and `pageSize=10000`
+Defaults are `page=0` and `pageSize=100`
 
 To get trades list for address use request
 
@@ -154,6 +154,31 @@ Response format is the same. Also pagination can be used
 ```
 GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 ```
+
+## Get balances
+
+To get trading balances send request `balances/:token/:address`
+
+```
+GET http://127.0.0.1:3000/balances/WBTC/5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK HTTP/1.1
+```
+
+Response looks like
+
+```
+{
+  "masterBalance": {
+    "positive": 105999915426
+  },
+  "tradingBalance": {
+    "positive": 92670000000
+  }
+}
+```
+
+Balance precision is 10^9. Divide by 10^9 to get token amount.
+
+If you don't have trading balance object key `tradingBalance` will be missing. Transfer funds using deposit method below.
 
 ## Deposit funds to trading subaccount
 
@@ -190,6 +215,16 @@ Successfull response looks like this
     ]
   }
 ]
+```
+
+Failed response can look like this
+
+```
+{
+  "statusCode": 500,
+  "error": "Internal Server Error",
+  "message": "bailsman.WrongMargin:  Wrong margin for operation performing"
+}
 ```
 
 ## Withdraw funds from trading subaccount
@@ -349,6 +384,74 @@ Successfull response has `orderId`. You can also see this order in get order lis
       ]
     }
   ]
+}
+```
+
+Unsuccessfull order creation will result in message like this
+
+```
+  "success": false,
+  "pending": false,
+  "payload": {
+    "error": {
+      "registryErrors": [
+        {
+          "args": [],
+          "docs": [
+            " Order price should be in corridor"
+          ],
+          "fields": [],
+          "index": 7,
+          "method": "OrderPriceShouldBeInCorridor",
+          "name": "OrderPriceShouldBeInCorridor",
+          "section": "eqDex"
+        }
+      ]
+    }
+  }
+}
+```
+
+## Cancel limit order
+
+To cancel limit order send `DELETE` request
+
+```
+DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "price": 34940,
+  "orderId": 1620
+}
+```
+
+Successfull response looks like this
+
+```
+[
+  {
+    "index": "0x0000",
+    "data": [
+      {
+        "weight": 700300000,
+        "class": "Normal",
+        "paysFee": "Yes"
+      }
+    ]
+  }
+]
+```
+
+Failed response looks like this
+
+```
+{
+  "statusCode": 500,
+  "error": "Internal Server Error",
+  "message": "eqDex.OrderNotFound:  No order found by id and price"
 }
 ```
 

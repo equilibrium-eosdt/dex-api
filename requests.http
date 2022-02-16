@@ -14,6 +14,9 @@ GET http://127.0.0.1:3000/trades/WBTC?page=0&pageSize=5 HTTP/1.1
 GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW HTTP/1.1
 
 ###
+GET http://127.0.0.1:3000/balances/WBTC/5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK HTTP/1.1
+
+###
 GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
@@ -23,7 +26,7 @@ content-type: application/json
 {
   "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
   "token": "WBTC",
-  "amount": 0.01
+  "amount": 1
 }
 
 ###
@@ -63,4 +66,15 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16449108786001 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16450086940341 HTTP/1.1
+
+###
+DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "price": 34940,
+  "orderId": 1620
+}

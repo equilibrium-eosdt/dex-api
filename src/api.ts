@@ -127,7 +127,7 @@ export const getTrades = async (
 	currency: string,
 	acc: string | undefined = undefined,
 	page: number = 0,
-	pageSize: number = 10000
+	pageSize: number = 100
 ) => {
 	if (!chainId) return undefined;
 
@@ -142,6 +142,41 @@ export const getTrades = async (
 	const response = await fetch(url);
 
 	return await response.json();
+};
+
+export const getBalances = async (token: string, address: string) => {
+	const masterBalanceAsset = assetFromToken(token);
+
+	const masterBalance = await promisify(
+		api$.pipe(
+			switchMap((api) =>
+				// @ts-expect-error
+				api._api.query.eqBalances.account(address, masterBalanceAsset)
+			)
+		)
+	);
+
+	const tradingBalance = await promisify(
+		api$.pipe(
+			switchMap((api) =>
+				api._api.query.subaccounts.subaccount(address, "Borrower").pipe(
+					switchMap((acc) => {
+						const addr = acc.unwrapOr(undefined)?.toString();
+
+						if (!addr) return of(undefined);
+
+						return api._api.query.eqBalances.account(
+							addr,
+							// @ts-expect-error
+							masterBalanceAsset
+						);
+					})
+				)
+			)
+		)
+	);
+
+	return { masterBalance, tradingBalance };
 };
 
 export const deposit = ({
@@ -287,6 +322,43 @@ export const createLimitOrder = ({
 	});
 
 	return { success: true, payload: { messageId } };
+};
+
+export const cancelLimitOrder = ({
+	token,
+	price,
+	orderId,
+	address,
+}: {
+	token: string;
+	price: number;
+	orderId: number;
+	address: string;
+}) => {
+	const cancelOrderAsset = assetFromToken(token);
+	const cancelOrderPrice = PRICE_PRECISION.times(price).toString();
+	const cancelOrderPair = keyring?.getPair(address);
+
+	if (!cancelOrderPair) return getError("Address not found in keyring");
+
+	const currentNonce = nonces.get(address);
+	if (!currentNonce) return getError("Nonce not found in keyring");
+
+	nonces.set(address, currentNonce + 1);
+
+	const cancelOrder$ = api$.pipe(
+		switchMap((api) =>
+			api._api.tx.eqDex
+				.deleteOrderExternal(cancelOrderAsset, orderId, cancelOrderPrice)
+				.signAndSend(cancelOrderPair, { nonce: currentNonce })
+				.pipe(
+					filter((res) => res.isFinalized || res.isInBlock),
+					handleTx(api._api)
+				)
+		)
+	);
+
+	return promisify(cancelOrder$);
 };
 
 export const createMarketOrder = ({
