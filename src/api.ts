@@ -26,6 +26,7 @@ const messages = new Map<
 	string,
 	{ success: boolean; pending: boolean; payload: unknown }
 >();
+const nonces = new Map<string, number>();
 
 const SEED_PHRASES = JSON.parse(fs.readFileSync("./seeds.json", "utf-8"));
 
@@ -45,7 +46,17 @@ cryptoWaitReady()
 		console.info("Keyring initialized");
 
 		keyring.pairs.forEach((pair) => {
-			console.info("Address added", pair.address);
+			const subscription = api$
+				.pipe(switchMap((api) => api._api.query.system.account(pair.address)))
+				.subscribe({
+					next: (acc) => {
+						nonces.set(pair.address, acc.nonce.toNumber());
+						console.info(
+							`Address added ${pair.address} with nonce ${acc.nonce.toNumber()}`
+						);
+						subscription.unsubscribe();
+					},
+				});
 		});
 	})
 	.catch((e) => {
@@ -215,7 +226,12 @@ export const createLimitOrder = ({
 
 	const pair = keyring?.getPair(address);
 
-	if (!pair) return Promise.reject("Address not found in keyring");
+	if (!pair) return getError("Address not found in keyring");
+
+	const currentNonce = nonces.get(address);
+	if (!currentNonce) return getError("Nonce not found in keyring");
+
+	nonces.set(address, currentNonce + 1);
 
 	const createOrder$ = api$.pipe(
 		switchMap((api) =>
@@ -227,10 +243,12 @@ export const createLimitOrder = ({
 					createOrderAmount
 				)
 				.signAndSend(pair, {
-					nonce: -1,
+					nonce: currentNonce,
 				})
 				.pipe(
-					filter((res) => res.isFinalized || res.isInBlock),
+					filter((res) => {
+						return res.isFinalized || res.isInBlock;
+					}),
 					handleTx(api._api)
 				)
 		)
@@ -280,6 +298,11 @@ export const createMarketOrder = ({
 
 	if (!pair) return getError("Address not found in keyring");
 
+	const currentNonce = nonces.get(address);
+	if (!currentNonce) return getError("Nonce not found in keyring");
+
+	nonces.set(address, currentNonce + 1);
+
 	const createOrder$ = api$.pipe(
 		switchMap((api) =>
 			api.tx
@@ -290,7 +313,7 @@ export const createMarketOrder = ({
 					createOrderAmount
 				)
 				.signAndSend(pair, {
-					nonce: -1,
+					nonce: currentNonce,
 				})
 				.pipe(
 					filter((res) => res.isFinalized || res.isInBlock),
