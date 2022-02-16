@@ -160,11 +160,16 @@ export const deposit = ({
 
 	if (!depositPair) return getError("Address not found in keyring");
 
+	const currentNonce = nonces.get(address);
+	if (!currentNonce) return getError("Nonce not found in keyring");
+
+	nonces.set(address, currentNonce + 1);
+
 	const deposit$ = api$.pipe(
 		switchMap((api) =>
 			api.tx
 				.toSubaccount("Borrower", depositAsset, depositAmount)
-				.signAndSend(depositPair, { nonce: -1 })
+				.signAndSend(depositPair, { nonce: currentNonce })
 				.pipe(
 					filter((res) => res.isFinalized || res.isInBlock),
 					handleTx(api._api)
@@ -191,11 +196,16 @@ export const withdraw = ({
 
 	if (!withdrawPair) return getError("Address not found in keyring");
 
+	const currentNonce = nonces.get(address);
+	if (!currentNonce) return getError("Nonce not found in keyring");
+
+	nonces.set(address, currentNonce + 1);
+
 	const withdraw$ = api$.pipe(
 		switchMap((api) =>
 			api.tx
 				.fromSubaccount("Borrower", withdrawAsset, withdrawAmount)
-				.signAndSend(withdrawPair, { nonce: -1 })
+				.signAndSend(withdrawPair, { nonce: currentNonce })
 				.pipe(
 					filter((res) => res.isFinalized || res.isInBlock),
 					handleTx(api._api)
