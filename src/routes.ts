@@ -1,4 +1,4 @@
-import { FastifyInstance, RouteShorthandOptions } from "fastify";
+import { FastifyInstance } from "fastify";
 import {
 	deposit,
 	withdraw,
@@ -10,88 +10,72 @@ import {
 	createLimitOrder,
 	cancelLimitOrder,
 	createMarketOrder,
+	updateLimitOrder,
 } from "./api";
 
-export const routes = async (
-	server: FastifyInstance,
-	options: RouteShorthandOptions
-) => {
-	server.get("/orders/:token", async (request, response) => {
+import {
+	depositSchema,
+	ordersSchema,
+	bestPricesSchema,
+	tradesSchema,
+	tradesByAddressSchema,
+	balancesSchema,
+	withdrawSchema,
+	createLimitOrderSchema,
+	updateLimitOrderSchema,
+} from "./schemas";
+
+export const routes = async (server: FastifyInstance) => {
+	server.get("/orders/:token", { schema: ordersSchema }, async (request) => {
 		// @ts-expect-error
-		const token = request.params.token;
-
-		if (typeof token !== "string") {
-			response.status(422).send(new Error("Wrong token in request"));
-		}
-
-		return await getOrders(token);
+		return await getOrders(request.params.token);
 	});
 
-	server.get("/bestPrices/:token", async (request, response) => {
-		// @ts-expect-error
-		const { token } = request.params;
-
-		// TODO: mb we should whitelist tokens
-		if (typeof token !== "string") {
-			response.status(422).send(new Error("Wrong token in request"));
+	server.get(
+		"/bestPrices/:token",
+		{ schema: bestPricesSchema },
+		async (request) => {
+			// @ts-expect-error
+			return await getBestPrices(request.params.token);
 		}
+	);
 
-		return await getBestPrices(token);
-	});
-
-	server.get("/trades/:token", async (request, response) => {
+	server.get("/trades/:token", { schema: tradesSchema }, async (request) => {
 		// @ts-expect-error
 		const { token } = request.params;
-
 		// @ts-expect-error
 		const { page, pageSize } = request.query;
-
-		// TODO: mb we should whitelist tokens
-		if (typeof token !== "string") {
-			response.status(422).send(new Error("Wrong token in request"));
-		}
 
 		return await getTrades(token, undefined, page, pageSize);
 	});
 
-	server.get("/tradesByAcc/:token/:acc", async (request, response) => {
-		// @ts-expect-error
-		const { token, acc } = request.params;
+	server.get(
+		"/tradesByAddress/:token/:address",
+		{ schema: tradesByAddressSchema },
+		async (request) => {
+			// @ts-expect-error
+			const { token, address } = request.params;
+			// @ts-expect-error
+			const { page, pageSize } = request.query;
 
-		// @ts-expect-error
-		const { page, pageSize } = request.query;
-
-		// TODO: mb we should whitelist tokens
-		if (typeof token !== "string" || typeof acc !== "string") {
-			response.status(422).send(new Error("Wrong token in request"));
+			return await getTrades(token, address, page, pageSize);
 		}
+	);
 
-		return await getTrades(token, acc, page, pageSize);
-	});
+	server.get(
+		"/balances/:token/:address",
+		{ schema: balancesSchema },
+		async (request) => {
+			// @ts-expect-error
+			const { token, address } = request.params;
 
-	server.get("/balances/:token/:acc", async (request, response) => {
-		// @ts-expect-error
-		const { token, acc } = request.params;
-
-		// TODO: mb we should whitelist tokens
-		if (typeof token !== "string" || typeof acc !== "string") {
-			response.status(422).send(new Error("Wrong token in request"));
+			return await getBalances(token, address);
 		}
+	);
 
-		return await getBalances(token, acc);
-	});
-
-	server.post("/deposit", async (request, response) => {
+	server.post("/deposit", { schema: depositSchema }, async (request) => {
 		// @ts-expect-error
 		const { token, amount, address } = request.body;
-
-		if (
-			typeof address !== "string" ||
-			typeof token !== "string" ||
-			typeof amount !== "number"
-		) {
-			response.status(422).send(new Error("Wrong parameters in request body"));
-		}
 
 		return await deposit({
 			token,
@@ -100,17 +84,9 @@ export const routes = async (
 		});
 	});
 
-	server.post("/withdraw", async (request, response) => {
+	server.post("/withdraw", { schema: withdrawSchema }, async (request) => {
 		// @ts-expect-error
 		const { token, amount, address } = request.body;
-
-		if (
-			typeof address !== "string" ||
-			typeof token !== "string" ||
-			typeof amount !== "number"
-		) {
-			response.status(422).send(new Error("Wrong parameters in request body"));
-		}
 
 		return await withdraw({
 			token,
@@ -119,32 +95,56 @@ export const routes = async (
 		});
 	});
 
-	server.post("/limitOrder", async (request, response) => {
-		// @ts-expect-error
-		const { token, amount, limitPrice, direction, address } = request.body;
+	server.post(
+		"/limitOrder",
+		{ schema: createLimitOrderSchema },
+		async (request) => {
+			// @ts-expect-error
+			const { token, amount, limitPrice, direction, address } = request.body;
 
-		if (
-			typeof address !== "string" ||
-			typeof token !== "string" ||
-			typeof amount !== "number" ||
-			typeof limitPrice !== "number" ||
-			!["Buy", "Sell"].includes(direction)
-		) {
-			response.status(422).send(new Error("Wrong parameters in request body"));
+			return await createLimitOrder({
+				token,
+				amount,
+				limitPrice,
+				direction,
+				address,
+			});
 		}
+	);
 
-		return await createLimitOrder({
-			token,
-			amount,
-			limitPrice,
-			direction,
-			address,
-		});
-	});
+	server.put(
+		"/limitOrder",
+		{ schema: updateLimitOrderSchema },
+		async (request) => {
+			const {
+				messageId,
+				token,
+				amountNew,
+				limitPrice,
+				limitPriceNew,
+				direction,
+				address,
+				nonce,
+				tip,
+			} = request.body as any;
+
+			return await updateLimitOrder({
+				messageId,
+				token,
+				amountNew,
+				limitPrice,
+				limitPriceNew,
+				address,
+				direction,
+				tip,
+				nonce,
+			});
+		}
+	);
 
 	server.delete("/limitOrder", async (request, response) => {
 		// @ts-expect-error
-		const { token, price, orderId, address } = request.body;
+		const { token, price, orderId, address, nonce, tip } = request.body;
 
 		if (
 			typeof address !== "string" ||
@@ -154,6 +154,8 @@ export const routes = async (
 		) {
 			response.status(422).send(new Error("Wrong parameters in request body"));
 		}
+
+		const opts = { nonce, tip };
 
 		return await cancelLimitOrder({
 			token,

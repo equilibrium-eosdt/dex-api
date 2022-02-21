@@ -59,6 +59,24 @@ Chain id is requested automatically on service start and is used for history api
 
 Use `requests.http` to test service in dev mode. VSCode extension `REST Client` is very handy for http requests.
 
+## Tokens whitelist
+
+When `token` is in request it is validated using schema
+
+`src/constants.ts` contains whitelisted tokens
+
+```
+export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB"];
+```
+
+`src/schemas.ts` contains token schema
+
+```
+const token = { type: "string", enum: TOKENS };
+```
+
+If you need more tokens add them to `TOKENS` constant
+
 ## Get order list
 
 Request order list for token (e.g. WBTC)
@@ -146,13 +164,13 @@ Defaults are `page=0` and `pageSize=100`
 To get trades list for address use request
 
 ```
-GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW HTTP/1.1
+GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW HTTP/1.1
 ```
 
 Response format is the same. Also pagination can be used
 
 ```
-GET http://127.0.0.1:3000/tradesByAcc/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
+GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 ```
 
 ## Get balances
@@ -352,7 +370,9 @@ You will recieve immediate response with message id.
 {
   "success": true,
   "payload": {
-    "messageId": "16448490953732"
+    "messageId": "16448490953732",
+    "nonce": 73,
+    "tip": 0
   }
 }
 ```
@@ -452,6 +472,52 @@ Failed response looks like this
   "statusCode": 500,
   "error": "Internal Server Error",
   "message": "eqDex.OrderNotFound:  No order found by id and price"
+}
+```
+
+## Replace limit order
+
+You can replace limit order using `PUT` limitOrder request. When you sent `POST` limitOrder request service responded with `messageId` and `nonce`. Use them to replace order. Add `tip` to raise your transaction priority. It will be used if transaction is waiting for block to finalize. Transactions with same nonce wich has highest `tip` will be in block.
+
+There are 4 scenarios:
+
+- Limit order is queued and replaced by new one
+- Limit order is queued and cancelled (send `limitPriceNew = 0`)
+- Limit order is on chain. It is cancelled and new one registered
+- Limit order is on chain and `limitPriceNew = 0`. Order is cancelled
+
+```
+PUT http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "limitPrice": 39002,
+  "limitPriceNew": 39003,
+  "amountNew": 0.1,
+  "direction": "Buy",
+  "messageId": "16454558118451",
+  "nonce": 71,
+  "tip": 10
+}
+```
+
+If you send `limitPriceNew = 0` order will be cancelled.
+
+Order can be replaced and cancelled even before it is finalized in block.
+
+Possible success response looks like this
+
+```
+{
+  "success": true,
+  "payload": {
+    "message": "Limit order is creating",
+    "messageId": "16454558286312",
+    "nonce": 73,
+    "tip": 0
+  }
 }
 ```
 

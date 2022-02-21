@@ -1,5 +1,9 @@
 import type { RegistryError } from "@polkadot/types/types";
 
+export enum Direction {
+	Buy = "Buy",
+	Sell = "Sell",
+}
 export interface ChainInfoResponse {
 	chainId: number;
 	genesisHash: string;

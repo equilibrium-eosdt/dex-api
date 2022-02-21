@@ -257,15 +257,19 @@ export const createLimitOrder = ({
 	limitPrice,
 	direction,
 	address,
+	tip,
+	nonce,
 }: {
 	token: string;
 	amount: number | string;
 	limitPrice: number | string;
 	direction: "Buy" | "Sell";
 	address: string;
+	tip?: number;
+	nonce?: number;
 }) => {
 	const createOrderAsset = assetFromToken(token);
-	const createOrderlimitPrice = PRICE_PRECISION.times(limitPrice).toString();
+	const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString();
 	const createOrderDirection = direction;
 	const createOrderAmount = AMOUNT_PRECISION.times(amount).toString();
 
@@ -273,22 +277,24 @@ export const createLimitOrder = ({
 
 	if (!pair) return getError("Address not found in keyring");
 
-	const currentNonce = nonces.get(address);
-	if (!currentNonce) return getError("Nonce not found in keyring");
+	const currentNonce = nonce ?? nonces.get(address);
+	if (typeof currentNonce === "undefined")
+		return getError("Nonce not found in keyring");
 
-	nonces.set(address, currentNonce + 1);
+	typeof nonce === "undefined" && nonces.set(address, currentNonce + 1);
 
 	const createOrder$ = api$.pipe(
 		switchMap((api) =>
 			api.tx
 				.dexCreateOrder(
 					createOrderAsset,
-					{ Limit: { price: createOrderlimitPrice, expiration_time: 0 } },
+					{ Limit: { price: createOrderLimitPrice, expiration_time: 0 } },
 					createOrderDirection,
 					createOrderAmount
 				)
 				.signAndSend(pair, {
 					nonce: currentNonce,
+					tip: tip ?? 0,
 				})
 				.pipe(
 					filter((res) => {
@@ -300,10 +306,17 @@ export const createLimitOrder = ({
 	);
 
 	const messageId = getMessageId();
+	const payload = {
+		message: "Limit order is creating",
+		messageId,
+		nonce: currentNonce,
+		tip: tip ?? 0,
+	};
+
 	messages.set(messageId, {
 		success: false,
 		pending: true,
-		payload: { message: "Limit order is creating" },
+		payload,
 	});
 
 	const subscription = createOrder$.subscribe({
@@ -321,7 +334,143 @@ export const createLimitOrder = ({
 		},
 	});
 
-	return { success: true, payload: { messageId } };
+	return {
+		success: true,
+		payload,
+	};
+};
+
+export const updateLimitOrder = async ({
+	messageId,
+	token,
+	amountNew,
+	limitPrice,
+	limitPriceNew,
+	direction,
+	address,
+	tip,
+	nonce,
+}: {
+	messageId: string;
+	token: string;
+	amountNew: number;
+	limitPrice: number;
+	limitPriceNew: number;
+	direction: "Buy" | "Sell";
+	address: string;
+	tip: number;
+	nonce?: number;
+}) => {
+	const orderState = getMessage(messageId);
+
+	console.log("orderState:::", orderState);
+
+	if (
+		// Order is already registered on chain
+		orderState.success &&
+		!orderState.pending &&
+		Array.isArray(orderState.payload) &&
+		orderState.payload.length > 0
+	) {
+		const event = orderState.payload[0];
+		const { orderId } = event;
+
+		if (!orderId) return getError("Order id is missing");
+
+		try {
+			await cancelLimitOrder({
+				token,
+				price: limitPrice,
+				orderId,
+				address,
+			});
+
+			if (limitPriceNew === 0 || amountNew === 0)
+				return {
+					success: true,
+					pending: false,
+					payload: { message: "Order cancelled on chain" },
+				};
+
+			return await createLimitOrder({
+				token,
+				amount: amountNew,
+				limitPrice: limitPriceNew,
+				direction,
+				address,
+			});
+		} catch (e) {
+			return getError((e as Error).toString());
+		}
+	}
+
+	// Order is waiting for block
+	if (!orderState.success && orderState.pending) {
+		if (limitPriceNew === 0 || amountNew === 0) {
+			const pair = keyring?.getPair(address);
+
+			if (!pair || !nonce || !tip)
+				return getError(
+					"Address, tip and nonce required to cancel order in block"
+				);
+
+			const cancelOrder$ = api$.pipe(
+				switchMap((api) =>
+					api._api.tx.system
+						.remark(`cancel order ${messageId}`)
+						.signAndSend(pair, { nonce })
+						.pipe(
+							filter((res) => {
+								return res.isFinalized || res.isInBlock;
+							}),
+							handleTx(api._api)
+						)
+				)
+			);
+
+			const cancelOrderSubscription = cancelOrder$.subscribe({
+				next: () => {
+					messages.set(messageId, {
+						success: true,
+						pending: false,
+						payload: { message: "Order cancelled in block" },
+					});
+					cancelOrderSubscription.unsubscribe();
+				},
+				error: (error) => {
+					messages.set(messageId, {
+						success: false,
+						pending: false,
+						payload: { error },
+					});
+					cancelOrderSubscription.unsubscribe();
+				},
+			});
+
+			return {
+				success: true,
+				pending: true,
+				payload: {
+					message: "Limit order is cancelling in block",
+					messageId,
+					nonce,
+					tip,
+				},
+			};
+		}
+
+		return await createLimitOrder({
+			token,
+			amount: amountNew,
+			limitPrice: limitPriceNew,
+			direction,
+			address,
+			nonce,
+			tip,
+		});
+	}
+
+	return getError("Order not found");
 };
 
 export const cancelLimitOrder = ({
@@ -342,7 +491,8 @@ export const cancelLimitOrder = ({
 	if (!cancelOrderPair) return getError("Address not found in keyring");
 
 	const currentNonce = nonces.get(address);
-	if (!currentNonce) return getError("Nonce not found in keyring");
+	if (typeof currentNonce === "undefined")
+		return getError("Nonce not found in keyring");
 
 	nonces.set(address, currentNonce + 1);
 

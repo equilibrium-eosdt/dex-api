@@ -1,8 +1,16 @@
 import BigNumber from "bignumber.js";
 
+import { Direction } from "./types";
+
+// Whitelist of tokens
+export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB"];
+
+export const DIRECTIONS = [Direction.Buy, Direction.Sell];
 export const AMOUNT_PRECISION = new BigNumber(1e18);
 export const PRICE_PRECISION = new BigNumber(1e9);
 export const TRANSFER_PRECISION = new BigNumber(1e9);
+export const ADDRESS_LENGTH_MIN = 48;
+export const ADDRESS_LENGTH_MAX = 49;
 
 export const CHAIN_NODE = process.env.CHAIN_NODE || "wss://devnet.genshiro.io";
 export const API_ENDPOINT =
