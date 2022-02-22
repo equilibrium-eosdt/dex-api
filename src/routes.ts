@@ -11,6 +11,7 @@ import {
   cancelLimitOrder,
   createMarketOrder,
   updateLimitOrder,
+  getPendingExtrinsics,
 } from "./api";
 
 import {
@@ -27,6 +28,7 @@ import {
   getMarketOrderSchema,
   createMarketOrderSchema,
   cancelLimitOrderSchema,
+  pendingExtrinsicsSchema,
 } from "./schemas";
 
 export const routes = async (server: FastifyInstance) => {
@@ -197,6 +199,16 @@ export const routes = async (server: FastifyInstance) => {
       const messageId = request.params.messageId;
 
       return getMessage(messageId);
+    }
+  );
+
+  server.get(
+    "/pendingExtrinsics/:address",
+    { schema: pendingExtrinsicsSchema },
+    async (request) => {
+      // @ts-expect-error
+      const { address } = request.params;
+      return await getPendingExtrinsics(address);
     }
   );
 };

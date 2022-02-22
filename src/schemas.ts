@@ -167,3 +167,13 @@ export const createMarketOrderSchema: FastifySchema = {
     },
   },
 };
+
+export const pendingExtrinsicsSchema: FastifySchema = {
+  params: {
+    type: "object",
+    required: ["address"],
+    properties: {
+      address,
+    },
+  },
+};
