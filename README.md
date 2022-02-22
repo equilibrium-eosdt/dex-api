@@ -517,6 +517,52 @@ Possible success response looks like this
 }
 ```
 
+## Get pending extrinsics by address
+
+To get pending createLimitOrder extrinsics send `GET`
+
+```
+GET http://127.0.0.1:3000/pendingExtrinsics/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X
+```
+
+Response is array of `eqDex.createOrder` extrinsics
+
+```
+[
+  {
+    "isSigned": true,
+    "method": {
+      "args": {
+        "asset": {
+          "0": "2,002,941,027"
+        },
+        "order_type": {
+          "Limit": {
+            "price": "38,990,000,000,000",
+            "expiration_time": "0"
+          }
+        },
+        "side": "Buy",
+        "amount": "10,000,000,000,000,000"
+      },
+      "method": "createOrder",
+      "section": "eqDex"
+    },
+    "era": {
+      "MortalEra": {
+        "period": "64",
+        "phase": "21"
+      }
+    },
+    "nonce": "780",
+    "signature": "0x94502be17d2155c99532fd12ce80e192524c2c89f948fddfe15cfc1c3f936645051526abda83d0c23eabd31af9410a951a49fc800284367aeda51cbaa7be518f",
+    "signer": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+    "tip": "0"
+  },
+  ...
+]
+```
+
 ## Build and run
 
 To build and run service use `start` command
