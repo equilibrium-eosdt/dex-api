@@ -1,212 +1,202 @@
 import { FastifyInstance } from "fastify";
 import {
-	deposit,
-	withdraw,
-	getOrders,
-	getBestPrices,
-	getTrades,
-	getBalances,
-	getMessage,
-	createLimitOrder,
-	cancelLimitOrder,
-	createMarketOrder,
-	updateLimitOrder,
+  deposit,
+  withdraw,
+  getOrders,
+  getBestPrices,
+  getTrades,
+  getBalances,
+  getMessage,
+  createLimitOrder,
+  cancelLimitOrder,
+  createMarketOrder,
+  updateLimitOrder,
 } from "./api";
 
 import {
-	depositSchema,
-	ordersSchema,
-	bestPricesSchema,
-	tradesSchema,
-	tradesByAddressSchema,
-	balancesSchema,
-	withdrawSchema,
-	createLimitOrderSchema,
-	updateLimitOrderSchema,
+  depositSchema,
+  ordersSchema,
+  bestPricesSchema,
+  tradesSchema,
+  tradesByAddressSchema,
+  balancesSchema,
+  withdrawSchema,
+  createLimitOrderSchema,
+  updateLimitOrderSchema,
+  getLimitOrderSchema,
+  getMarketOrderSchema,
+  createMarketOrderSchema,
+  cancelLimitOrderSchema,
 } from "./schemas";
 
 export const routes = async (server: FastifyInstance) => {
-	server.get("/orders/:token", { schema: ordersSchema }, async (request) => {
-		// @ts-expect-error
-		return await getOrders(request.params.token);
-	});
+  server.get("/orders/:token", { schema: ordersSchema }, async (request) => {
+    // @ts-expect-error
+    return await getOrders(request.params.token);
+  });
 
-	server.get(
-		"/bestPrices/:token",
-		{ schema: bestPricesSchema },
-		async (request) => {
-			// @ts-expect-error
-			return await getBestPrices(request.params.token);
-		}
-	);
+  server.get(
+    "/bestPrices/:token",
+    { schema: bestPricesSchema },
+    async (request) => {
+      // @ts-expect-error
+      return await getBestPrices(request.params.token);
+    }
+  );
 
-	server.get("/trades/:token", { schema: tradesSchema }, async (request) => {
-		// @ts-expect-error
-		const { token } = request.params;
-		// @ts-expect-error
-		const { page, pageSize } = request.query;
+  server.get("/trades/:token", { schema: tradesSchema }, async (request) => {
+    // @ts-expect-error
+    const { token } = request.params;
+    // @ts-expect-error
+    const { page, pageSize } = request.query;
 
-		return await getTrades(token, undefined, page, pageSize);
-	});
+    return await getTrades(token, undefined, page, pageSize);
+  });
 
-	server.get(
-		"/tradesByAddress/:token/:address",
-		{ schema: tradesByAddressSchema },
-		async (request) => {
-			// @ts-expect-error
-			const { token, address } = request.params;
-			// @ts-expect-error
-			const { page, pageSize } = request.query;
+  server.get(
+    "/tradesByAddress/:token/:address",
+    { schema: tradesByAddressSchema },
+    async (request) => {
+      // @ts-expect-error
+      const { token, address } = request.params;
+      // @ts-expect-error
+      const { page, pageSize } = request.query;
 
-			return await getTrades(token, address, page, pageSize);
-		}
-	);
+      return await getTrades(token, address, page, pageSize);
+    }
+  );
 
-	server.get(
-		"/balances/:token/:address",
-		{ schema: balancesSchema },
-		async (request) => {
-			// @ts-expect-error
-			const { token, address } = request.params;
+  server.get(
+    "/balances/:token/:address",
+    { schema: balancesSchema },
+    async (request) => {
+      // @ts-expect-error
+      const { token, address } = request.params;
 
-			return await getBalances(token, address);
-		}
-	);
+      return await getBalances(token, address);
+    }
+  );
 
-	server.post("/deposit", { schema: depositSchema }, async (request) => {
-		// @ts-expect-error
-		const { token, amount, address } = request.body;
+  server.post("/deposit", { schema: depositSchema }, async (request) => {
+    // @ts-expect-error
+    const { token, amount, address } = request.body;
 
-		return await deposit({
-			token,
-			amount,
-			address,
-		});
-	});
+    return await deposit({
+      token,
+      amount,
+      address,
+    });
+  });
 
-	server.post("/withdraw", { schema: withdrawSchema }, async (request) => {
-		// @ts-expect-error
-		const { token, amount, address } = request.body;
+  server.post("/withdraw", { schema: withdrawSchema }, async (request) => {
+    // @ts-expect-error
+    const { token, amount, address } = request.body;
 
-		return await withdraw({
-			token,
-			amount,
-			address,
-		});
-	});
+    return await withdraw({
+      token,
+      amount,
+      address,
+    });
+  });
 
-	server.post(
-		"/limitOrder",
-		{ schema: createLimitOrderSchema },
-		async (request) => {
-			// @ts-expect-error
-			const { token, amount, limitPrice, direction, address } = request.body;
+  server.post(
+    "/limitOrder",
+    { schema: createLimitOrderSchema },
+    async (request) => {
+      // @ts-expect-error
+      const { token, amount, limitPrice, direction, address } = request.body;
 
-			return await createLimitOrder({
-				token,
-				amount,
-				limitPrice,
-				direction,
-				address,
-			});
-		}
-	);
+      return await createLimitOrder({
+        token,
+        amount,
+        limitPrice,
+        direction,
+        address,
+      });
+    }
+  );
 
-	server.put(
-		"/limitOrder",
-		{ schema: updateLimitOrderSchema },
-		async (request) => {
-			const {
-				messageId,
-				token,
-				amountNew,
-				limitPrice,
-				limitPriceNew,
-				direction,
-				address,
-				nonce,
-				tip,
-			} = request.body as any;
+  server.put(
+    "/limitOrder",
+    { schema: updateLimitOrderSchema },
+    async (request) => {
+      const {
+        messageId,
+        token,
+        amountNew,
+        limitPrice,
+        limitPriceNew,
+        direction,
+        address,
+        nonce,
+        tip,
+      } = request.body as any;
 
-			return await updateLimitOrder({
-				messageId,
-				token,
-				amountNew,
-				limitPrice,
-				limitPriceNew,
-				address,
-				direction,
-				tip,
-				nonce,
-			});
-		}
-	);
+      return await updateLimitOrder({
+        messageId,
+        token,
+        amountNew,
+        limitPrice,
+        limitPriceNew,
+        address,
+        direction,
+        tip,
+        nonce,
+      });
+    }
+  );
 
-	server.delete("/limitOrder", async (request, response) => {
-		// @ts-expect-error
-		const { token, price, orderId, address, nonce, tip } = request.body;
+  server.delete(
+    "/limitOrder",
+    { schema: cancelLimitOrderSchema },
+    async (request) => {
+      // @ts-expect-error
+      const { token, price, orderId, address } = request.body;
 
-		if (
-			typeof address !== "string" ||
-			typeof token !== "string" ||
-			typeof price !== "number" ||
-			typeof orderId !== "number"
-		) {
-			response.status(422).send(new Error("Wrong parameters in request body"));
-		}
+      return await cancelLimitOrder({
+        token,
+        price,
+        orderId,
+        address,
+      });
+    }
+  );
 
-		const opts = { nonce, tip };
+  server.get(
+    "/limitOrder/:messageId",
+    { schema: getLimitOrderSchema },
+    async (request) => {
+      // @ts-expect-error
+      const messageId = request.params.messageId;
 
-		return await cancelLimitOrder({
-			token,
-			price,
-			orderId,
-			address,
-		});
-	});
+      return getMessage(messageId);
+    }
+  );
 
-	server.get("/limitOrder/:messageId", async (request, response) => {
-		// @ts-expect-error
-		const messageId = request.params.messageId;
+  server.post(
+    "/marketOrder",
+    { schema: createMarketOrderSchema },
+    async (request) => {
+      // @ts-expect-error
+      const { token, amount, direction, address } = request.body;
 
-		// TODO: mb we should whitelist tokens
-		if (typeof messageId !== "string") {
-			response.status(422).send(new Error("Wrong messageId in request"));
-		}
+      return createMarketOrder({
+        token,
+        amount,
+        direction,
+        address,
+      });
+    }
+  );
 
-		return getMessage(messageId);
-	});
+  server.get(
+    "/marketOrder/:messageId",
+    { schema: getMarketOrderSchema },
+    async (request) => {
+      // @ts-expect-error
+      const messageId = request.params.messageId;
 
-	server.post("/marketOrder", async (request, response) => {
-		// @ts-expect-error
-		const { token, amount, limitPrice, direction, address } = request.body;
-
-		if (
-			typeof address !== "string" ||
-			typeof token !== "string" ||
-			typeof amount !== "number" ||
-			!["Buy", "Sell"].includes(direction)
-		) {
-			response.status(422).send(new Error("Wrong parameters in request body"));
-		}
-
-		return createMarketOrder({
-			token,
-			amount,
-			direction,
-			address,
-		});
-	});
-
-	server.get("/marketOrder/:messageId", async (request, response) => {
-		// @ts-expect-error
-		const messageId = request.params.messageId;
-
-		// TODO: mb we should whitelist tokens
-		if (typeof messageId !== "string") {
-			response.status(422).send(new Error("Wrong messageId in request"));
-		}
-
-		return getMessage(messageId);
-	});
+      return getMessage(messageId);
+    }
+  );
 };

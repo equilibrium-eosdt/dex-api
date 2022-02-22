@@ -1,5 +1,5 @@
 import { assetFromToken, getApiCreator } from "@equilab/api";
-import { switchMap, Observable, catchError, of, filter } from "rxjs";
+import { switchMap, Observable, catchError, of, filter, map } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
 import qs from "querystring";
@@ -152,6 +152,11 @@ export const getBalances = async (token: string, address: string) => {
 			switchMap((api) =>
 				// @ts-expect-error
 				api._api.query.eqBalances.account(address, masterBalanceAsset)
+			),
+			map((res) =>
+				res.isPositive
+					? res.asPositive.toString()
+					: "-" + res.asNegative.toString()
 			)
 		)
 	);
@@ -170,13 +175,22 @@ export const getBalances = async (token: string, address: string) => {
 							// @ts-expect-error
 							masterBalanceAsset
 						);
+					}),
+					map((res) => {
+						if (!res) return "0";
+						return res.isPositive
+							? res.asPositive.toString()
+							: "-" + res.asNegative.toString();
 					})
 				)
 			)
 		)
 	);
 
-	return { masterBalance, tradingBalance };
+	return {
+		masterBalance,
+		tradingBalance,
+	};
 };
 
 export const deposit = ({
@@ -362,8 +376,6 @@ export const updateLimitOrder = async ({
 	nonce?: number;
 }) => {
 	const orderState = getMessage(messageId);
-
-	console.log("orderState:::", orderState);
 
 	if (
 		// Order is already registered on chain

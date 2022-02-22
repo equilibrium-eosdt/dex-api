@@ -24,5 +24,5 @@ server.listen(PORT, (err) => {
 		server.log.error(err);
 		process.exit(1);
 	}
-	console.log(`Server started at port ${PORT}`);
+	console.info(`Server started at port ${PORT}`);
 });

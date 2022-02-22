@@ -17,7 +17,7 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balances/WBTC/5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK HTTP/1.1
+GET http://127.0.0.1:3000/balances/WBTC/5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/deposit HTTP/1.1
@@ -44,9 +44,9 @@ POST http://127.0.0.1:3000/marketOrder HTTP/1.1
 content-type: application/json
 
 {
-  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
   "token": "WBTC",
-  "amount": 1,
+  "amount": 0.1,
   "direction": "Buy"
 }
 
@@ -60,9 +60,9 @@ content-type: application/json
 {
   "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
   "token": "WBTC",
-  "limitPrice": 39002,
+  "limitPrice": 39049,
   "amount": 0.1,
-  "direction": "Buy"
+  "direction": "Sell"
 }
 
 ###

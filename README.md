@@ -175,7 +175,7 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 
 ## Get balances
 
-To get trading balances send request `balances/:token/:address`
+To get trading balances send `GET` request `balances/:token/:address`
 
 ```
 GET http://127.0.0.1:3000/balances/WBTC/5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK HTTP/1.1
@@ -185,12 +185,8 @@ Response looks like
 
 ```
 {
-  "masterBalance": {
-    "positive": 105999915426
-  },
-  "tradingBalance": {
-    "positive": 92670000000
-  }
+  "masterBalance": "1000000899999941400",
+  "tradingBalance": "100000000000"
 }
 ```
 
