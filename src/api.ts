@@ -197,6 +197,36 @@ export const getBalances = async (token: string, address: string) => {
   };
 };
 
+export const sudoDeposit = ({
+  token,
+  address,
+  to,
+  amount,
+}: {
+  token: string;
+  address: string;
+  to: string;
+  amount: number | string;
+}) => {
+  const depositAsset = assetFromToken(token);
+  const depositAmount = TRANSFER_PRECISION.times(amount).toString(10);
+  const depositPair = keyring?.getPair(address);
+
+  if (!depositPair) return getError("Address not found in keyring");
+  const sudoDeposit$ = api$.pipe(
+    switchMap((api) =>
+      api._api.tx.sudo
+        .sudo(
+          // @ts-expect-error
+          api._api.tx.eqBalances.deposit(depositAsset, to, depositAmount)
+        )
+        .signAndSend(depositPair, { nonce: -1 })
+    )
+  );
+
+  return promisify(sudoDeposit$);
+};
+
 export const deposit = ({
   token,
   address,
@@ -207,14 +237,16 @@ export const deposit = ({
   amount: number | string;
 }) => {
   const depositAsset = assetFromToken(token);
-  const depositAmount = TRANSFER_PRECISION.times(amount).toString();
+  const depositAmount = TRANSFER_PRECISION.times(amount).toString(10);
 
   const depositPair = keyring?.getPair(address);
 
   if (!depositPair) return getError("Address not found in keyring");
 
   const currentNonce = nonces.get(address);
-  if (!currentNonce) return getError("Nonce not found in keyring");
+
+  if (typeof currentNonce === "undefined")
+    return getError("Nonce not found in keyring");
 
   nonces.set(address, currentNonce + 1);
 
@@ -243,14 +275,15 @@ export const withdraw = ({
   amount: number | string;
 }) => {
   const withdrawAsset = assetFromToken(token);
-  const withdrawAmount = TRANSFER_PRECISION.times(amount).toString();
+  const withdrawAmount = TRANSFER_PRECISION.times(amount).toString(10);
 
   const withdrawPair = keyring?.getPair(address);
 
   if (!withdrawPair) return getError("Address not found in keyring");
 
   const currentNonce = nonces.get(address);
-  if (!currentNonce) return getError("Nonce not found in keyring");
+  if (typeof currentNonce === "undefined")
+    return getError("Nonce not found in keyring");
 
   nonces.set(address, currentNonce + 1);
 
@@ -287,9 +320,9 @@ export const createLimitOrder = ({
   nonce?: number;
 }) => {
   const createOrderAsset = assetFromToken(token);
-  const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString();
+  const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString(10);
   const createOrderDirection = direction;
-  const createOrderAmount = AMOUNT_PRECISION.times(amount).toString();
+  const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
 
   const pair = keyring?.getPair(address);
 
@@ -501,7 +534,7 @@ export const cancelLimitOrder = ({
   address: string;
 }) => {
   const cancelOrderAsset = assetFromToken(token);
-  const cancelOrderPrice = PRICE_PRECISION.times(price).toString();
+  const cancelOrderPrice = PRICE_PRECISION.times(price).toString(10);
   const cancelOrderPair = keyring?.getPair(address);
 
   if (!cancelOrderPair) return getError("Address not found in keyring");
@@ -540,7 +573,7 @@ export const createMarketOrder = ({
 }) => {
   const createOrderAsset = assetFromToken(token);
   const createOrderDirection = direction;
-  const createOrderAmount = AMOUNT_PRECISION.times(amount).toString();
+  const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
 
   const pair = keyring?.getPair(address);
 

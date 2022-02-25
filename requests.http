@@ -20,13 +20,24 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/balances/WBTC/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
 
 ###
+POST http://127.0.0.1:3000/sudo/deposit HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZgMUDuyxuKYbpy39TpGcUVkVdaEPvSJtWySPKuGHnz6Ge57N",
+  "to": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "GENS",
+  "amount": 1000000
+}
+
+###
 POST http://127.0.0.1:3000/deposit HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
   "token": "WBTC",
-  "amount": 0.1
+  "amount": 900
 }
 
 ###
@@ -59,9 +70,9 @@ content-type: application/json
 
 {
   "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "WBTC",
-  "limitPrice": 39049,
-  "amount": 0.1,
+  "token": "GENS",
+  "limitPrice": 0.029,
+  "amount": 1000,
   "direction": "Sell"
 }
 
@@ -82,7 +93,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16454556073522 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/1645778926226200 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -97,4 +108,4 @@ content-type: application/json
 
 
 ###
-GET http://127.0.0.1:3000/pendingExtrinsics/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X
+GET http://127.0.0.1:3000/pendingExtrinsics/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF

@@ -85,6 +85,19 @@ export const balancesSchema: FastifySchema = {
   },
 };
 
+export const sudoDepositSchema: FastifySchema = {
+  body: {
+    type: "object",
+    required: ["token", "address", "amount", "to"],
+    properties: {
+      token,
+      address,
+      amount,
+      to: { type: "string" },
+    },
+  },
+};
+
 export const depositSchema: FastifySchema = {
   body: {
     type: "object",

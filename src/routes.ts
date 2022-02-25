@@ -12,10 +12,12 @@ import {
   createMarketOrder,
   updateLimitOrder,
   getPendingExtrinsics,
+  sudoDeposit,
 } from "./api";
 
 import {
   depositSchema,
+  sudoDepositSchema,
   ordersSchema,
   bestPricesSchema,
   tradesSchema,
@@ -78,6 +80,18 @@ export const routes = async (server: FastifyInstance) => {
       return await getBalances(token, address);
     }
   );
+
+  server.post("/sudo/deposit", { schema: depositSchema }, async (request) => {
+    // @ts-expect-error
+    const { token, amount, address, to } = request.body;
+
+    return await sudoDeposit({
+      token,
+      amount,
+      address,
+      to,
+    });
+  });
 
   server.post("/deposit", { schema: depositSchema }, async (request) => {
     // @ts-expect-error
