@@ -37,6 +37,17 @@ const messageIdParams = {
 
 export const ordersSchema: FastifySchema = tokenParams;
 
+export const ordersByAddressSchema: FastifySchema = {
+  params: {
+    type: "object",
+    required: ["token", "address"],
+    properties: {
+      token,
+      address,
+    },
+  },
+};
+
 export const bestPricesSchema: FastifySchema = tokenParams;
 
 export const tradesSchema: FastifySchema = {

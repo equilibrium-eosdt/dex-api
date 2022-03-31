@@ -103,6 +103,32 @@ Response is array of orders currently registered on chain
 ]
 ```
 
+## Get order list by address
+
+Request order list for token (e.g. WBTC) filtered by given address
+
+```
+GET http://127.0.0.1:3000/orders/WBTC/cZhbYJCcmnJnRTvbx5YVvrUrt45PL9sgwoT4e4HvpVjFKNvsA HTTP/1.1
+```
+
+Response is array of orders currently registered on chain
+
+```
+
+[
+  {
+    "id": 36,
+    "account": "cZhbYJCcmnJnRTvbx5YVvrUrt45PL9sgwoT4e4HvpVjFKNvsA",
+    "side": "buy",
+    "price": "34950.0",
+    "amount": "1.0",
+    "createdAt": "1644842586",
+    "expirationTime": "0"
+  },
+  ...
+]
+```
+
 ## Get best bid and ask
 
 Request best bid and ask for token

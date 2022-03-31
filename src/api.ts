@@ -110,6 +110,18 @@ const getOrders$ = (token: string): Observable<unknown> => {
 
 export const getOrders = (token: string) => promisify(getOrders$(token));
 
+export const getOrdersByAddress = (token: string, address: string) => {
+  const ordersByAddress$ = getOrders$(token).pipe(
+    map((orders) => {
+      return (orders as { account: string }[]).filter(
+        ({ account }) => account === address
+      );
+    })
+  );
+
+  return promisify(ordersByAddress$);
+};
+
 const getBestPrices$ = (token: string): Observable<unknown> => {
   if (bestPricesObservables.has(token)) {
     return bestPricesObservables.get(token)!;

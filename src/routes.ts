@@ -3,6 +3,7 @@ import {
   deposit,
   withdraw,
   getOrders,
+  getOrdersByAddress,
   getBestPrices,
   getTrades,
   getBalances,
@@ -17,8 +18,8 @@ import {
 
 import {
   depositSchema,
-  sudoDepositSchema,
   ordersSchema,
+  ordersByAddressSchema,
   bestPricesSchema,
   tradesSchema,
   tradesByAddressSchema,
@@ -38,6 +39,19 @@ export const routes = async (server: FastifyInstance) => {
     // @ts-expect-error
     return await getOrders(request.params.token);
   });
+
+  server.get(
+    "/orders/:token/:address",
+    { schema: ordersByAddressSchema },
+    async (request) => {
+      return await getOrdersByAddress(
+        // @ts-expect-error
+        request.params.token,
+        // @ts-expect-error
+        request.params.address
+      );
+    }
+  );
 
   server.get(
     "/bestPrices/:token",
