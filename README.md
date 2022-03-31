@@ -14,14 +14,14 @@ $ yarn
 
 ### Add seeds to json config
 
-Add seed phrases as array of strings to seeds.json config at root level. You can use seeds-example.json.
+Add seed phrases as array of strings to seeds.json config at package root level. You can use seeds-example.json.
 Replace seeds and rename to seeds.json.
 
 ```
 $ cat seeds.json
 [
-	"lock idea vague ordinary pool stuff summer whale fame laptop assist slow",
-	"inflict vast endless unit addict clap wage village drum pool motion next"
+	"shoe salon decrease sudden person estate describe just ozone shrimp lava injury",
+	"despair grain funny buffalo liar drive eight swift soup work anchor cousin"
 ]
 ```
 
