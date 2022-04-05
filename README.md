@@ -315,7 +315,7 @@ content-type: application/json
   "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
   "token": "WBTC",
   "amount": 1,
-  "direction": "Buy"
+  "direction": "buy"
 }
 ```
 
@@ -382,7 +382,7 @@ content-type: application/json
   "token": "WBTC",
   "limitPrice": 34940,
   "amount": 1,
-  "direction": "Buy"
+  "direction": "buy"
 }
 ```
 
@@ -406,6 +406,7 @@ GET http://127.0.0.1:3000/limitOrder/16448490953732 HTTP/1.1
 ```
 
 Successfull response has `orderId`. You can also see this order in get order list request (see above)
+If you recieve `orderId` in payload - order is registered in orderbook
 
 ```
 {
@@ -415,6 +416,29 @@ Successfull response has `orderId`. You can also see this order in get order lis
     {
       "orderId": "39"
     },
+    {
+      "index": "0x0000",
+      "data": [
+        {
+          "weight": 1271400000,
+          "class": "Normal",
+          "paysFee": "Yes"
+        }
+      ]
+    }
+  ]
+}
+```
+
+If order is executed immediately on arrival it won't be registered in orderbook and won't have `orderId`
+
+Then you will recieve `success: true` and `pending: false` without `orderId` inside payload.
+
+```
+{
+  "success": true,
+  "pending": false,
+  "payload": [
     {
       "index": "0x0000",
       "data": [
@@ -518,7 +542,7 @@ content-type: application/json
   "limitPrice": 39002,
   "limitPriceNew": 39003,
   "amountNew": 0.1,
-  "direction": "Buy",
+  "direction": "buy",
   "messageId": "16454558118451",
   "nonce": 71,
   "tip": 10

@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import { FastifyInstance, FastifyRequest } from "fastify";
 import {
   deposit,
   withdraw,
@@ -35,19 +35,22 @@ import {
 } from "./schemas";
 
 export const routes = async (server: FastifyInstance) => {
-  server.get("/orders/:token", { schema: ordersSchema }, async (request) => {
-    // @ts-expect-error
-    return await getOrders(request.params.token);
-  });
+  server.get(
+    "/orders/:token",
+    { schema: ordersSchema },
+    async (request: FastifyRequest<{ Params: { token: string } }>) => {
+      return await getOrders(request.params.token);
+    }
+  );
 
   server.get(
     "/orders/:token/:address",
     { schema: ordersByAddressSchema },
-    async (request) => {
+    async (
+      request: FastifyRequest<{ Params: { token: string; address: string } }>
+    ) => {
       return await getOrdersByAddress(
-        // @ts-expect-error
         request.params.token,
-        // @ts-expect-error
         request.params.address
       );
     }
@@ -56,28 +59,37 @@ export const routes = async (server: FastifyInstance) => {
   server.get(
     "/bestPrices/:token",
     { schema: bestPricesSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (request: FastifyRequest<{ Params: { token: string } }>) => {
       return await getBestPrices(request.params.token);
     }
   );
 
-  server.get("/trades/:token", { schema: tradesSchema }, async (request) => {
-    // @ts-expect-error
-    const { token } = request.params;
-    // @ts-expect-error
-    const { page, pageSize } = request.query;
+  server.get(
+    "/trades/:token",
+    { schema: tradesSchema },
+    async (
+      request: FastifyRequest<{
+        Params: { token: string };
+        Querystring: { page: number; pageSize: number };
+      }>
+    ) => {
+      const { token } = request.params;
+      const { page, pageSize } = request.query;
 
-    return await getTrades(token, undefined, page, pageSize);
-  });
+      return await getTrades(token, undefined, page, pageSize);
+    }
+  );
 
   server.get(
     "/tradesByAddress/:token/:address",
     { schema: tradesByAddressSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (
+      request: FastifyRequest<{
+        Params: { token: string; address: string };
+        Querystring: { page: number; pageSize: number };
+      }>
+    ) => {
       const { token, address } = request.params;
-      // @ts-expect-error
       const { page, pageSize } = request.query;
 
       return await getTrades(token, address, page, pageSize);
@@ -87,53 +99,70 @@ export const routes = async (server: FastifyInstance) => {
   server.get(
     "/balances/:token/:address",
     { schema: balancesSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (
+      request: FastifyRequest<{ Params: { token: string; address: string } }>
+    ) => {
       const { token, address } = request.params;
 
       return await getBalances(token, address);
     }
   );
 
-  server.post("/sudo/deposit", { schema: depositSchema }, async (request) => {
-    // @ts-expect-error
-    const { token, amount, address, to } = request.body;
+  server.post(
+    "/sudo/deposit",
+    { schema: depositSchema },
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof sudoDeposit>[0] }>
+    ) => {
+      const { token, amount, address, to } = request.body;
 
-    return await sudoDeposit({
-      token,
-      amount,
-      address,
-      to,
-    });
-  });
+      return await sudoDeposit({
+        token,
+        amount,
+        address,
+        to,
+      });
+    }
+  );
 
-  server.post("/deposit", { schema: depositSchema }, async (request) => {
-    // @ts-expect-error
-    const { token, amount, address } = request.body;
+  server.post(
+    "/deposit",
+    { schema: depositSchema },
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof deposit>[0] }>
+    ) => {
+      const { token, amount, address } = request.body;
 
-    return await deposit({
-      token,
-      amount,
-      address,
-    });
-  });
+      return await deposit({
+        token,
+        amount,
+        address,
+      });
+    }
+  );
 
-  server.post("/withdraw", { schema: withdrawSchema }, async (request) => {
-    // @ts-expect-error
-    const { token, amount, address } = request.body;
+  server.post(
+    "/withdraw",
+    { schema: withdrawSchema },
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof withdraw>[0] }>
+    ) => {
+      const { token, amount, address } = request.body;
 
-    return await withdraw({
-      token,
-      amount,
-      address,
-    });
-  });
+      return await withdraw({
+        token,
+        amount,
+        address,
+      });
+    }
+  );
 
   server.post(
     "/limitOrder",
     { schema: createLimitOrderSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof createLimitOrder>[0] }>
+    ) => {
       const { token, amount, limitPrice, direction, address } = request.body;
 
       return await createLimitOrder({
@@ -149,7 +178,9 @@ export const routes = async (server: FastifyInstance) => {
   server.put(
     "/limitOrder",
     { schema: updateLimitOrderSchema },
-    async (request) => {
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof updateLimitOrder>[0] }>
+    ) => {
       const {
         messageId,
         token,
@@ -160,7 +191,7 @@ export const routes = async (server: FastifyInstance) => {
         address,
         nonce,
         tip,
-      } = request.body as any;
+      } = request.body;
 
       return await updateLimitOrder({
         messageId,
@@ -179,8 +210,9 @@ export const routes = async (server: FastifyInstance) => {
   server.delete(
     "/limitOrder",
     { schema: cancelLimitOrderSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof cancelLimitOrder>[0] }>
+    ) => {
       const { token, price, orderId, address } = request.body;
 
       return await cancelLimitOrder({
@@ -195,8 +227,7 @@ export const routes = async (server: FastifyInstance) => {
   server.get(
     "/limitOrder/:messageId",
     { schema: getLimitOrderSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (request: FastifyRequest<{ Params: { messageId: string } }>) => {
       const messageId = request.params.messageId;
 
       return getMessage(messageId);
@@ -206,8 +237,9 @@ export const routes = async (server: FastifyInstance) => {
   server.post(
     "/marketOrder",
     { schema: createMarketOrderSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof createMarketOrder>[0] }>
+    ) => {
       const { token, amount, direction, address } = request.body;
 
       return createMarketOrder({
@@ -222,8 +254,7 @@ export const routes = async (server: FastifyInstance) => {
   server.get(
     "/marketOrder/:messageId",
     { schema: getMarketOrderSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (request: FastifyRequest<{ Params: { messageId: string } }>) => {
       const messageId = request.params.messageId;
 
       return getMessage(messageId);
@@ -233,8 +264,7 @@ export const routes = async (server: FastifyInstance) => {
   server.get(
     "/pendingExtrinsics/:address",
     { schema: pendingExtrinsicsSchema },
-    async (request) => {
-      // @ts-expect-error
+    async (request: FastifyRequest<{ Params: { address: string } }>) => {
       const { address } = request.params;
       return await getPendingExtrinsics(address);
     }

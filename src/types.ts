@@ -1,16 +1,11 @@
 import type { RegistryError } from "@polkadot/types/types";
 import type { FixedU128 } from "@polkadot/types/interfaces";
 import type { AnyNumber } from "@polkadot/types-codec/types";
-import type {
-  AugmentedSubmittable,
-  SubmittableExtrinsic,
-  ApiTypes,
-} from "@polkadot/api-base/types";
 import { Asset, OrderType, OrderSide } from "@equilab/api/genshiro/interfaces";
 
 export enum Direction {
-  Buy = "Buy",
-  Sell = "Sell",
+  Buy = "buy",
+  Sell = "sell",
 }
 export interface ChainInfoResponse {
   chainId: number;

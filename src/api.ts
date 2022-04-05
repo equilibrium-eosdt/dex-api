@@ -1,4 +1,4 @@
-import { assetFromToken, getApiCreator } from "@equilab/api";
+import { assetFromToken, getApiCreatorRx } from "@equilab/api";
 import { switchMap, Observable, catchError, of, filter, map } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
@@ -11,6 +11,7 @@ import {
   isChainInfoResponse,
   isSeedPhrases,
   isCreateOrderExtrinsic,
+  Direction,
 } from "./types";
 import {
   API_ENDPOINT,
@@ -19,9 +20,16 @@ import {
   AMOUNT_PRECISION,
   TRANSFER_PRECISION,
 } from "./constants";
-import { promisify, handleTx, getMessageId, getError } from "./utils";
+import {
+  promisify,
+  handleTx,
+  getMessageId,
+  getError,
+  capitalize,
+} from "./utils";
+import { AccountInfo } from "@equilab/api/genshiro/interfaces";
 
-const api$ = getApiCreator("Gens", "rxjs")(CHAIN_NODE);
+const api$ = getApiCreatorRx("Gens")(CHAIN_NODE);
 let chainId: number | undefined = undefined;
 let keyring: Keyring | undefined = undefined;
 const orderObservables = new Map<string, Observable<unknown>>();
@@ -51,7 +59,11 @@ cryptoWaitReady()
 
     keyring.pairs.forEach((pair) => {
       const subscription = api$
-        .pipe(switchMap((api) => api._api.query.system.account(pair.address)))
+        .pipe(
+          switchMap((api) =>
+            api._api.query.system.account<AccountInfo>(pair.address)
+          )
+        )
         .subscribe({
           next: (acc) => {
             nonces.set(pair.address, acc.nonce.toNumber());
@@ -165,10 +177,7 @@ export const getBalances = async (token: string, address: string) => {
 
   const masterBalance = await promisify(
     api$.pipe(
-      switchMap((api) =>
-        // @ts-expect-error
-        api._api.query.eqBalances.account(address, masterBalanceAsset)
-      ),
+      switchMap((api) => api.query.getBalance(address, masterBalanceAsset)),
       map((res) =>
         res.isPositive
           ? res.asPositive.toString()
@@ -180,17 +189,13 @@ export const getBalances = async (token: string, address: string) => {
   const tradingBalance = await promisify(
     api$.pipe(
       switchMap((api) =>
-        api._api.query.subaccounts.subaccount(address, "Borrower").pipe(
+        api.query.getAddress(address, "Borrower").pipe(
           switchMap((acc) => {
             const addr = acc.unwrapOr(undefined)?.toString();
 
             if (!addr) return of(undefined);
 
-            return api._api.query.eqBalances.account(
-              addr,
-              // @ts-expect-error
-              masterBalanceAsset
-            );
+            return api.query.getBalance(addr, masterBalanceAsset);
           }),
           map((res) => {
             if (!res) return "0";
@@ -228,10 +233,7 @@ export const sudoDeposit = ({
   const sudoDeposit$ = api$.pipe(
     switchMap((api) =>
       api._api.tx.sudo
-        .sudo(
-          // @ts-expect-error
-          api._api.tx.eqBalances.deposit(depositAsset, to, depositAmount)
-        )
+        .sudo(api._api.tx.eqBalances.deposit(depositAsset, to, depositAmount))
         .signAndSend(depositPair, { nonce: -1 })
     )
   );
@@ -326,14 +328,14 @@ export const createLimitOrder = ({
   token: string;
   amount: number | string;
   limitPrice: number | string;
-  direction: "Buy" | "Sell";
+  direction: Direction;
   address: string;
   tip?: number;
   nonce?: number;
 }) => {
   const createOrderAsset = assetFromToken(token);
   const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString(10);
-  const createOrderDirection = direction;
+  const createOrderDirection = capitalize(direction);
   const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
 
   const pair = keyring?.getPair(address);
@@ -419,7 +421,7 @@ export const updateLimitOrder = async ({
   amountNew: number;
   limitPrice: number;
   limitPriceNew: number;
-  direction: "Buy" | "Sell";
+  direction: Direction;
   address: string;
   tip: number;
   nonce?: number;
@@ -580,11 +582,11 @@ export const createMarketOrder = ({
 }: {
   token: string;
   amount: number | string;
-  direction: "Buy" | "Sell";
+  direction: Direction;
   address: string;
 }) => {
   const createOrderAsset = assetFromToken(token);
-  const createOrderDirection = direction;
+  const createOrderDirection = capitalize(direction);
   const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
 
   const pair = keyring?.getPair(address);

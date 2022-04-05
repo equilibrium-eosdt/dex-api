@@ -8,69 +8,77 @@ import { TxError } from "./types";
 let nonce = 0;
 
 export const getMessageId = () => {
-	nonce = nonce + 1;
-	return Date.now().toString() + nonce.toString();
+  nonce = nonce + 1;
+  return Date.now().toString() + nonce.toString();
 };
 
 export const getError = (error: string) => ({
-	success: false,
-	pending: false,
-	payload: { error },
+  success: false,
+  pending: false,
+  payload: { error },
 });
 
 export const promisify = (o$: Observable<unknown>) => {
-	return new Promise((resolve, reject) => {
-		const subscription = o$.subscribe({
-			next: (data) => {
-				subscription.unsubscribe();
-				resolve(data);
-			},
-			error: (err) => {
-				subscription.unsubscribe();
-				reject(err);
-			},
-		});
-	});
+  return new Promise((resolve, reject) => {
+    const subscription = o$.subscribe({
+      next: (data) => {
+        subscription.unsubscribe();
+        resolve(data);
+      },
+      error: (err) => {
+        subscription.unsubscribe();
+        reject(err);
+      },
+    });
+  });
 };
 
 export const handleTx = (api: ApiRx) =>
-	map((res: ISubmittableResult) => {
-		if (res.status.isInBlock || res.status.isFinalized) {
-			const { success, error } = res.events.reduce<{
-				success: (IEvent<[DispatchInfo]> | { orderId: string })[];
-				error: IEvent<[DispatchError, DispatchInfo]>[];
-			}>(
-				(prev, event) => {
-					if (api.events.system.ExtrinsicFailed.is(event.event)) {
-						return { ...prev, error: [...prev.error, event.event] };
-					} else if (api.events.system.ExtrinsicSuccess.is(event.event)) {
-						return { ...prev, success: [...prev.success, event.event] };
-					} else if (api.events.eqDex.OrderCreated.is(event.event)) {
-						const orderId = event.event.data[1].toString();
-						return { ...prev, success: [...prev.success, { orderId }] };
-					}
+  map((res: ISubmittableResult) => {
+    if (res.status.isInBlock || res.status.isFinalized) {
+      // @ts-expect-error
+      const { success, error } = res.events.reduce<{
+        success: (IEvent<[DispatchInfo]> | { orderId: string })[];
+        error: IEvent<[DispatchError, DispatchInfo]>[];
+      }>(
+        // @ts-expect-error
+        (prev, event) => {
+          if (api.events.system.ExtrinsicFailed.is(event.event)) {
+            return { ...prev, error: [...prev.error, event.event] };
+          } else if (api.events.system.ExtrinsicSuccess.is(event.event)) {
+            return { ...prev, success: [...prev.success, event.event] };
+          } else if (api.events.eqDex.OrderCreated.is(event.event)) {
+            // @ts-expect-error
+            const orderId = event.event.data[1].toString();
+            return { ...prev, success: [...prev.success, { orderId }] };
+          }
 
-					return prev;
-				},
-				{ success: [], error: [] }
-			);
+          return prev;
+        },
+        { success: [], error: [] }
+      );
 
-			if (success.length) {
-				return success;
-			} else if (error.length) {
-				const decoded = error.map((e) =>
-					api.registry.findMetaError(e.data[0].asModule)
-				);
+      if (success.length) {
+        return success;
+      } else if (error.length) {
+        // @ts-expect-error
+        const decoded = error.map((e) =>
+          api.registry.findMetaError(e.data[0].asModule)
+        );
 
-				const message = decoded
-					.map(
-						({ section, method, docs }) =>
-							`${section}.${method}: ${docs.join(" ")}`
-					)
-					.join(", ");
+        const message = decoded
+          .map(
+            // @ts-expect-error
+            ({ section, method, docs }) =>
+              `${section}.${method}: ${docs.join(" ")}`
+          )
+          .join(", ");
 
-				const err = new TxError(message, decoded);
-				throw err;
-			}
-		}
-	});
+        const err = new TxError(message, decoded);
+        throw err;
+      }
+    }
+  });
+
+export const capitalize = (s: string) =>
+  s.length > 0 ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s;
