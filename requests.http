@@ -8,6 +8,10 @@ GET http://127.0.0.1:3000/orders/WBTC/cZgynFJgi2QQDewe2JEZ8rdokRuv1b3v9UMfXTB7sn
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
 
 ###
+GET http://127.0.0.1:3000/bestPrices/BNB HTTP/1.1
+
+
+###
 GET http://127.0.0.1:3000/trades/WBTC HTTP/1.1
 
 ###

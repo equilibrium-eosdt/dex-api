@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { Direction } from "./types";
 
 // Whitelist of tokens
-export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB"];
+export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB", "KSM"];
 
 export const DIRECTIONS = [Direction.Buy, Direction.Sell];
 export const AMOUNT_PRECISION = new BigNumber(1e18);
@@ -14,18 +14,18 @@ export const ADDRESS_LENGTH_MAX = 49;
 
 export const CHAIN_NODE = process.env.CHAIN_NODE || "wss://devnet.genshiro.io";
 export const API_ENDPOINT =
-	process.env.API_ENDPOINT || "https://apiv3.equilibrium.io/api";
+  process.env.API_ENDPOINT || "https://apiv3.equilibrium.io/api";
 export const PORT = process.env.PORT || 3000;
 
 console.assert(
-	Boolean(process.env.CHAIN_NODE),
-	`Env var CHAIN_NODE not found. Using default ${CHAIN_NODE}`
+  Boolean(process.env.CHAIN_NODE),
+  `Env var CHAIN_NODE not found. Using default ${CHAIN_NODE}`
 );
 console.assert(
-	Boolean(process.env.API_ENDPOINT),
-	`Env var API_ENDPOINT not found. Using default ${API_ENDPOINT}`
+  Boolean(process.env.API_ENDPOINT),
+  `Env var API_ENDPOINT not found. Using default ${API_ENDPOINT}`
 );
 console.assert(
-	Boolean(process.env.PORT),
-	`Env var PORT not found. Using default ${PORT}`
+  Boolean(process.env.PORT),
+  `Env var PORT not found. Using default ${PORT}`
 );
