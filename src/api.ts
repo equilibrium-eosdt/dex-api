@@ -119,6 +119,15 @@ const genesis$ = api$.pipe(
   )
 );
 
+const getBorrowerAddress$ = (address: string) =>
+  api$.pipe(
+    switchMap((api) =>
+      api.query
+        .getAddress(address, "Borrower")
+        .pipe(map((acc) => acc.unwrapOr(undefined)?.toString()))
+    )
+  );
+
 const genesisSubscription = genesis$.subscribe({
   next: (res) => {
     if (!isChainInfoResponse(res)) return;
@@ -145,9 +154,10 @@ export const getOrders = (token: string) => promisify(getOrders$(token));
 
 const getOrdersByAddress$ = (token: string, address: string) =>
   getOrders$(token).pipe(
-    map((orders) => {
+    combineLatestWith(getBorrowerAddress$(address)),
+    map(([orders, borrowerAddress]) => {
       return (orders as { account: string }[]).filter(
-        ({ account }) => account === address
+        ({ account }) => account === borrowerAddress
       );
     })
   );
@@ -245,15 +255,6 @@ const assetInfo$ = api$.pipe(
     }))
   )
 );
-
-const getBorrowerAddress$ = (address: string) =>
-  api$.pipe(
-    switchMap((api) =>
-      api.query
-        .getAddress(address, "Borrower")
-        .pipe(map((acc) => acc.unwrapOr(undefined)?.toString()))
-    )
-  );
 
 const getBalances$ = (address: string) =>
   api$.pipe(
