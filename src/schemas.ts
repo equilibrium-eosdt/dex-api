@@ -25,6 +25,16 @@ const tokenParams = {
   },
 };
 
+const addressParams = {
+  params: {
+    type: "object",
+    required: ["address"],
+    properties: {
+      address,
+    },
+  },
+};
+
 const messageIdParams = {
   params: {
     type: "object",
@@ -36,6 +46,8 @@ const messageIdParams = {
 };
 
 export const ordersSchema: FastifySchema = tokenParams;
+
+export const addressSchema: FastifySchema = addressParams;
 
 export const ordersByAddressSchema: FastifySchema = {
   params: {

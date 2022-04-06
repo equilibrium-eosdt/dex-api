@@ -220,6 +220,55 @@ Balance precision is 10^9. Divide by 10^9 to get token amount.
 
 If you don't have trading balance object key `tradingBalance` will be missing. Transfer funds using deposit method below.
 
+## Get latest usd prices for all tokens on chain
+
+To get latest usd prices from oracles on chain send `GET` request `/rates`
+
+```
+GET http://127.0.0.1:3000/rates HTTP/1.1
+```
+
+Response format looks like:
+
+```
+[
+  {
+    "price": "426.887",
+    "token": "Bnb",
+    "asset": 6450786
+  },
+  {
+    "price": "2.6186",
+    "token": "Crv",
+    "asset": 6517366
+  },
+  ...
+]
+```
+
+## Get locked balances
+
+To get info on account balances locked by orders send `GET` request `/lockedBalance/:address/`
+
+```
+GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+```
+
+You should recieve
+
+```
+{
+  "collateralUsd": "260154.7442",
+  "debtUsd": "0",
+  "lockedUsd": "124787",
+  "availableUsd": "135367.7442"
+}
+```
+
+Where `collateralUsd` is your total trading balance in USD, `lockedUsd` is amount locked by active orders
+
+If you use the same account to borrow funds `debtUsd` is your total debt in USD
+
 ## Deposit funds to trading subaccount
 
 To start trading you should deposit funds to trading account.

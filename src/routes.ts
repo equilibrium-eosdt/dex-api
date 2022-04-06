@@ -7,6 +7,7 @@ import {
   getBestPrices,
   getTrades,
   getBalances,
+  getMargin,
   getMessage,
   createLimitOrder,
   cancelLimitOrder,
@@ -14,6 +15,8 @@ import {
   updateLimitOrder,
   getPendingExtrinsics,
   sudoDeposit,
+  getLockedBalance,
+  getRates,
 } from "./api";
 
 import {
@@ -32,6 +35,7 @@ import {
   createMarketOrderSchema,
   cancelLimitOrderSchema,
   pendingExtrinsicsSchema,
+  addressSchema,
 } from "./schemas";
 
 export const routes = async (server: FastifyInstance) => {
@@ -105,6 +109,26 @@ export const routes = async (server: FastifyInstance) => {
       const { token, address } = request.params;
 
       return await getBalances(token, address);
+    }
+  );
+
+  server.get("/rates", async () => {
+    return await getRates();
+  });
+
+  server.get(
+    "/margin/:address",
+    { schema: addressSchema },
+    async (request: FastifyRequest<{ Params: { address: string } }>) => {
+      return await getMargin(request.params.address);
+    }
+  );
+
+  server.get(
+    "/lockedBalance/:address",
+    { schema: addressSchema },
+    async (request: FastifyRequest<{ Params: { address: string } }>) => {
+      return await getLockedBalance(request.params.address);
     }
   );
 

@@ -9,6 +9,9 @@ export const DIRECTIONS = [Direction.Buy, Direction.Sell];
 export const AMOUNT_PRECISION = new BigNumber(1e18);
 export const PRICE_PRECISION = new BigNumber(1e9);
 export const TRANSFER_PRECISION = new BigNumber(1e9);
+export const BIG_ZERO = new BigNumber(0);
+export const BIG_ONE = new BigNumber(1);
+export const EQD_PRICE = "1000000000";
 export const ADDRESS_LENGTH_MIN = 48;
 export const ADDRESS_LENGTH_MAX = 49;
 

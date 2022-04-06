@@ -1,9 +1,11 @@
+import BigNumber from "bignumber.js";
 import { Observable, map } from "rxjs";
 import type { ApiRx } from "@polkadot/api";
 import type { IEvent, ISubmittableResult } from "@polkadot/types/types";
 import type { DispatchInfo, DispatchError } from "@polkadot/types/interfaces";
 
 import { TxError } from "./types";
+import { PRICE_PRECISION, BIG_ZERO } from "./constants";
 
 let nonce = 0;
 
@@ -82,3 +84,22 @@ export const handleTx = (api: ApiRx) =>
 
 export const capitalize = (s: string) =>
   s.length > 0 ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s;
+
+export const priceToBn = (price: unknown): BigNumber => {
+  if (typeof price === "number" || typeof price === "string") {
+    return new BigNumber(price || 0, 10).div(PRICE_PRECISION);
+  }
+
+  if ((price as any).isPositive) {
+    return new BigNumber((price as any).asPositive.toString(10), 10).div(
+      PRICE_PRECISION
+    );
+  }
+  if ((price as any).isNegative) {
+    return new BigNumber("-" + (price as any).asNegative.toString(10), 10).div(
+      PRICE_PRECISION
+    );
+  }
+
+  return BIG_ZERO;
+};

@@ -1,5 +1,18 @@
-import { assetFromToken, getApiCreatorRx } from "@equilab/api";
-import { switchMap, Observable, catchError, of, filter, map } from "rxjs";
+import { assetFromToken, getApiCreatorRx, tokenFromAsset } from "@equilab/api";
+import { currencyFromU64 } from "@equilab/api/genshiro";
+import { Vec } from "@polkadot/types-codec";
+import { Order } from "@equilab/api/genshiro/interfaces";
+import BigNumber from "bignumber.js";
+import {
+  switchMap,
+  Observable,
+  catchError,
+  of,
+  filter,
+  map,
+  tap,
+  combineLatestWith,
+} from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
 import qs from "querystring";
@@ -19,6 +32,9 @@ import {
   PRICE_PRECISION,
   AMOUNT_PRECISION,
   TRANSFER_PRECISION,
+  BIG_ZERO,
+  EQD_PRICE,
+  BIG_ONE,
 } from "./constants";
 import {
   promisify,
@@ -26,8 +42,13 @@ import {
   getMessageId,
   getError,
   capitalize,
+  priceToBn,
 } from "./utils";
-import { AccountInfo } from "@equilab/api/genshiro/interfaces";
+import {
+  AccountInfo,
+  PricePoint,
+  SignedBalance,
+} from "@equilab/api/genshiro/interfaces";
 
 const api$ = getApiCreatorRx("Gens")(CHAIN_NODE);
 let chainId: number | undefined = undefined;
@@ -114,16 +135,16 @@ const getOrders$ = (token: string): Observable<unknown> => {
     return orderObservables.get(token)!;
   }
 
-  const order$ = api$.pipe(switchMap((api) => api.derive.dex.orders(token)));
-  orderObservables.set(token, order$);
+  const orders$ = api$.pipe(switchMap((api) => api.derive.dex.orders(token)));
+  orderObservables.set(token, orders$);
 
-  return order$;
+  return orders$;
 };
 
 export const getOrders = (token: string) => promisify(getOrders$(token));
 
-export const getOrdersByAddress = (token: string, address: string) => {
-  const ordersByAddress$ = getOrders$(token).pipe(
+const getOrdersByAddress$ = (token: string, address: string) =>
+  getOrders$(token).pipe(
     map((orders) => {
       return (orders as { account: string }[]).filter(
         ({ account }) => account === address
@@ -131,7 +152,8 @@ export const getOrdersByAddress = (token: string, address: string) => {
     })
   );
 
-  return promisify(ordersByAddress$);
+export const getOrdersByAddress = (token: string, address: string) => {
+  return promisify(getOrdersByAddress$(token, address));
 };
 
 const getBestPrices$ = (token: string): Observable<unknown> => {
@@ -213,6 +235,147 @@ export const getBalances = async (token: string, address: string) => {
     tradingBalance,
   };
 };
+
+const assetInfo$ = api$.pipe(
+  switchMap((api) => api.query.assetInfo()),
+  map((raw) =>
+    raw.unwrap().map((asset) => ({
+      token: currencyFromU64(asset.id[0].toNumber()),
+      asset: asset.id[0].toNumber(),
+    }))
+  )
+);
+
+const getBorrowerAddress$ = (address: string) =>
+  api$.pipe(
+    switchMap((api) =>
+      api.query
+        .getAddress(address, "Borrower")
+        .pipe(map((acc) => acc.unwrapOr(undefined)?.toString()))
+    )
+  );
+
+const getBalances$ = (address: string) =>
+  api$.pipe(
+    combineLatestWith(assetInfo$, getBorrowerAddress$(address)),
+    switchMap(([api, assetInfo, borrowerAddress]) =>
+      borrowerAddress
+        ? api.query.getBalance
+            .multi<SignedBalance>(
+              assetInfo.map(({ asset }) => [borrowerAddress, { 0: asset }])
+            )
+            .pipe(
+              map((balances) =>
+                balances.map((balance, i) => ({
+                  balance: priceToBn(balance),
+                  ...assetInfo[i],
+                }))
+              )
+            )
+        : of([])
+    )
+  );
+
+const rates$ = api$.pipe(
+  combineLatestWith(assetInfo$),
+  switchMap(([api, assetInfo]) =>
+    api.query.getRate
+      .multi<PricePoint>(assetInfo.map(({ asset }) => [asset]))
+      .pipe(
+        map((rates) =>
+          rates.map(({ price }, i) => ({
+            price: priceToBn(
+              assetInfo[i].token === "Eqd" ? EQD_PRICE : price.toString(10)
+            ),
+            ...assetInfo[i],
+          }))
+        )
+      )
+  )
+);
+
+export const getRates = () => promisify(rates$);
+
+const getBalancesWithUsd$ = (address: string) =>
+  getBalances$(address).pipe(
+    combineLatestWith(rates$),
+    map(([balances, rates]) => {
+      return balances.map((el) => ({
+        ...el,
+        price: rates.find(({ token }) => token === el.token)?.price ?? BIG_ZERO,
+      }));
+    })
+  );
+
+const getCollateralDebtTotals$ = (address: string) =>
+  getBalancesWithUsd$(address).pipe(
+    map((tokenData) => {
+      return tokenData.reduce(
+        (acc, { price, balance }) => {
+          if (balance.gt(0)) {
+            return {
+              ...acc,
+              collateralUsd: acc.collateralUsd.plus(balance.times(price)),
+            };
+          }
+          if (balance.lt(0)) {
+            return {
+              ...acc,
+              debtUsd: acc.debtUsd.plus(balance.times(price).abs()),
+            };
+          }
+
+          return acc;
+        },
+        { collateralUsd: BIG_ZERO, debtUsd: BIG_ZERO }
+      );
+    })
+  );
+
+const getLockedBalance$ = (address: string) =>
+  api$.pipe(
+    switchMap((api) => api._api.query.eqDex.ordersByAssetAndChunkKey.entries()),
+    combineLatestWith(getBorrowerAddress$(address)),
+    map(([orders, borrowerAddress]) =>
+      orders
+        .flatMap(([, order]) => (order as unknown as Vec<Order>).toArray())
+        .filter(({ account_id }) => account_id.toString() === borrowerAddress)
+    ),
+    map((orders) =>
+      orders.reduce((acc, { price, amount }) => {
+        return acc.plus(
+          new BigNumber(price.toString(10))
+            .div(PRICE_PRECISION)
+            .times(amount.toString(10))
+            .div(AMOUNT_PRECISION)
+        );
+      }, BIG_ZERO)
+    )
+  );
+
+const getCollateralDebtLocked$ = (address: string) =>
+  getCollateralDebtTotals$(address).pipe(
+    combineLatestWith(getLockedBalance$(address)),
+    map(([{ collateralUsd, debtUsd }, lockedUsd]) => ({
+      collateralUsd,
+      debtUsd,
+      lockedUsd,
+      availableUsd: collateralUsd.minus(debtUsd).minus(lockedUsd),
+    }))
+  );
+
+export const getLockedBalance = (address: string) =>
+  promisify(getCollateralDebtLocked$(address));
+
+const getMargin$ = (address: string) => {
+  return getCollateralDebtTotals$(address).pipe(
+    map(({ collateralUsd, debtUsd }) =>
+      collateralUsd.minus(debtUsd).div(collateralUsd.plus(debtUsd))
+    )
+  );
+};
+
+export const getMargin = (address: string) => promisify(getMargin$(address));
 
 export const sudoDeposit = ({
   token,
