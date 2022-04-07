@@ -298,6 +298,32 @@ const assetInfo$ = api$.pipe(
   )
 );
 
+const getToken$ = (token: string) =>
+  api$.pipe(
+    switchMap((api) => api.query.assetInfo()),
+    map((raw) =>
+      raw
+        .unwrap()
+        .map((asset) => ({
+          token: currencyFromU64(asset.id[0].toNumber()),
+          asset: asset.id[0].toNumber(),
+          lot: new BigNumber(asset.lot.toString(10)).div(AMOUNT_PRECISION),
+          priceStep: new BigNumber(asset.price_step.toString(10)).div(
+            AMOUNT_PRECISION
+          ),
+          makerFee: new BigNumber(asset.maker_fee.toString(10)).div(
+            AMOUNT_PRECISION
+          ),
+          takerFee: new BigNumber(asset.taker_fee.toString(10)).div(
+            AMOUNT_PRECISION
+          ),
+        }))
+        .filter((el) => el.token.toLowerCase() === token.toLowerCase())
+    )
+  );
+
+export const getToken = (token: string) => promisify(getToken$(token));
+
 const getBalances$ = (address: string) =>
   api$.pipe(
     combineLatestWith(assetInfo$, getBorrowerAddress$(address)),

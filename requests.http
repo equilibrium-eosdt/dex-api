@@ -8,6 +8,9 @@ GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
 GET http://127.0.0.1:3000/rates HTTP/1.1
 
 ###
+GET http://127.0.0.1:3000/token/WBTC HTTP/1.1
+
+###
 GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
 
 ###

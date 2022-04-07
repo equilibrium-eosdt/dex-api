@@ -77,6 +77,31 @@ const token = { type: "string", enum: TOKENS };
 
 If you need more tokens add them to `TOKENS` constant
 
+## Get token info
+
+Request token info via `GET` request `/token/:token`
+
+```
+GET http://127.0.0.1:3000/token/WBTC HTTP/1.1
+```
+
+Response should contain array with one element:
+
+```
+[
+  {
+    "token": "Wbtc",
+    "asset": 2002941027,
+    "lot": "0.01",
+    "priceStep": "1",
+    "makerFee": "0.0005",
+    "takerFee": "0.001"
+  }
+]
+```
+
+Amounts divided by 1e18 for human readability
+
 ## Get orderbook
 
 Request orderbook using `GET` request `/orderBook/:token?depth=:posInt`

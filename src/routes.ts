@@ -18,6 +18,7 @@ import {
   getLockedBalance,
   getRates,
   getDepth,
+  getToken,
 } from "./api";
 
 import {
@@ -40,6 +41,14 @@ import {
 } from "./schemas";
 
 export const routes = async (server: FastifyInstance) => {
+  server.get(
+    "/token/:token",
+    { schema: ordersSchema },
+    async (request: FastifyRequest<{ Params: { token: string } }>) => {
+      return await getToken(request.params.token);
+    }
+  );
+
   server.get(
     "/orders/:token",
     { schema: ordersSchema },
