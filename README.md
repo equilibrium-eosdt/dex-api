@@ -77,6 +77,41 @@ const token = { type: "string", enum: TOKENS };
 
 If you need more tokens add them to `TOKENS` constant
 
+## Get orderbook
+
+Request orderbook using `GET` request `/orderBook/:token?depth=:posInt`
+
+```
+GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
+```
+
+Output is orderbook prices with volume
+
+```
+{
+  "bids": [
+    [
+      "43050.0",
+      "0.68"
+    ],
+    [
+      "43041.0",
+      "0.11"
+    ]
+  ],
+  "asks": [
+    [
+      "43090.0",
+      "0.1"
+    ],
+    [
+      "43100.0",
+      "0.58"
+    ]
+  ]
+}
+```
+
 ## Get order list
 
 Request order list for token (e.g. WBTC)

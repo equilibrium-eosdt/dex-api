@@ -1,4 +1,4 @@
-import { assetFromToken, getApiCreatorRx, tokenFromAsset } from "@equilab/api";
+import { assetFromToken, getApiCreatorRx } from "@equilab/api";
 import { currencyFromU64 } from "@equilab/api/genshiro";
 import { Vec } from "@polkadot/types-codec";
 import { Order } from "@equilab/api/genshiro/interfaces";
@@ -10,7 +10,6 @@ import {
   of,
   filter,
   map,
-  tap,
   combineLatestWith,
 } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
@@ -25,6 +24,7 @@ import {
   isSeedPhrases,
   isCreateOrderExtrinsic,
   Direction,
+  isOrderLikeArray,
 } from "./types";
 import {
   API_ENDPOINT,
@@ -34,7 +34,6 @@ import {
   TRANSFER_PRECISION,
   BIG_ZERO,
   EQD_PRICE,
-  BIG_ONE,
 } from "./constants";
 import {
   promisify,
@@ -43,6 +42,7 @@ import {
   getError,
   capitalize,
   priceToBn,
+  isPosInt,
 } from "./utils";
 import {
   AccountInfo,
@@ -151,6 +151,48 @@ const getOrders$ = (token: string): Observable<unknown> => {
 };
 
 export const getOrders = (token: string) => promisify(getOrders$(token));
+
+const getDepth$ = (token: string, depth: string) =>
+  getOrders$(token).pipe(
+    map((orders) => {
+      if (!isOrderLikeArray(orders)) return [];
+      const bidOrders = orders.filter((el) => el.side === Direction.Buy);
+      const askOrders = orders.filter((el) => el.side === Direction.Sell);
+
+      const bidLevels = bidOrders.reduce(
+        (acc: Record<string, BigNumber>, el) => {
+          if (el.price in acc) {
+            return { ...acc, [el.price]: acc[el.price].plus(el.amount) };
+          }
+          return { ...acc, [el.price]: new BigNumber(el.amount) };
+        },
+        {}
+      );
+      const askLevels = askOrders.reduce(
+        (acc: Record<string, BigNumber>, el) => {
+          if (el.price in acc) {
+            return { ...acc, [el.price]: acc[el.price].plus(el.amount) };
+          }
+          return { ...acc, [el.price]: new BigNumber(el.amount) };
+        },
+        {}
+      );
+
+      const parsedDepth = +depth;
+
+      const bids = Object.entries(bidLevels)
+        .sort(([a], [b]) => new BigNumber(b).minus(a).toNumber())
+        .slice(0, isPosInt(depth) ? +depth : 100);
+      const asks = Object.entries(askLevels)
+        .sort(([a], [b]) => new BigNumber(a).minus(b).toNumber())
+        .slice(0, isPosInt(depth) ? +depth : 100);
+
+      return { bids, asks };
+    })
+  );
+
+export const getDepth = (token: string, depth: string) =>
+  promisify(getDepth$(token, depth));
 
 const getOrdersByAddress$ = (token: string, address: string) =>
   getOrders$(token).pipe(

@@ -7,6 +7,12 @@ export enum Direction {
   Buy = "buy",
   Sell = "sell",
 }
+
+interface OrderLike {
+  price: string;
+  amount: string;
+  side: Direction;
+}
 export interface ChainInfoResponse {
   chainId: number;
   genesisHash: string;
@@ -82,3 +88,10 @@ export const isCreateOrderExtrinsic = (
   typeof (raw as CreateOrderExtrinsic).method === "object" &&
   (raw as CreateOrderExtrinsic).method.section === "eqDex" &&
   (raw as CreateOrderExtrinsic).method.method === "createOrder";
+
+export const isOrderLike = (raw: unknown): raw is OrderLike =>
+  typeof (raw as any).side === "string" &&
+  typeof (raw as any).price === "string";
+
+export const isOrderLikeArray = (raw: unknown): raw is OrderLike[] =>
+  Array.isArray(raw) && raw.every(isOrderLike);

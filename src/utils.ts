@@ -103,3 +103,5 @@ export const priceToBn = (price: unknown): BigNumber => {
 
   return BIG_ZERO;
 };
+
+export const isPosInt = (s: string) => /^([1-9]\d*)$/.test(s);

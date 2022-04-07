@@ -17,6 +17,7 @@ import {
   sudoDeposit,
   getLockedBalance,
   getRates,
+  getDepth,
 } from "./api";
 
 import {
@@ -58,6 +59,16 @@ export const routes = async (server: FastifyInstance) => {
         request.params.address
       );
     }
+  );
+
+  server.get(
+    "/orderBook/:token",
+    async (
+      request: FastifyRequest<{
+        Params: { token: string };
+        Querystring: { depth: string };
+      }>
+    ) => await getDepth(request.params.token, request.query.depth)
   );
 
   server.get(
