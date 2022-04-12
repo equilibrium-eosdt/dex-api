@@ -1,6 +1,6 @@
 {
   "name": "mm-api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "lib/index.js",
   "license": "UNLICENSED",
   "private": true,
@@ -10,7 +10,7 @@
     "dev": "source .env && nodemon src/server.ts"
   },
   "dependencies": {
-    "@equilab/api": "1.10.2",
+    "@equilab/api": "1.10.4",
     "abort-controller": "3.0.0",
     "bignumber.js": "9.0.2",
     "dotenv": "16.0.0",
