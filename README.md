@@ -964,3 +964,83 @@ To build and run service use `start` command
 ```
 $ yarn start
 ```
+
+## Get candle data
+
+You can get candle data from our public history api
+
+Request `GET /api/v1/udf/chains/{chainId}/history`
+
+```
+https://apiv3.equilibrium.io/api/v1/udf/chains/10006/history?symbol=WBTC%2FEQD&resolution=1D&from=1648394458&to=1649258458&countback=2&currencyCode=EQD
+```
+
+Parameters:
+
+```
+chainId: int32, required
+symbol: string
+from: int64
+to: int64
+resolution: string
+```
+
+Response Schema
+
+```
+{
+statusCode	UdfApiStatusesinteger($int32)
+Enum:
+[ 0, 1, 2 ]
+
+barTime	[
+nullable: true
+integer($int32)]
+
+closingPrice	[
+nullable: true
+number($float)]
+
+openingPrice	[
+nullable: true
+number($float)]
+
+highPrice	[
+nullable: true
+number($float)]
+
+lowPrice	[
+nullable: true
+number($float)]
+
+volume	[
+nullable: true
+number($float)]
+}
+```
+
+Response example
+
+```
+{
+  "statusCode": 0,
+  "barTime": [
+    0
+  ],
+  "closingPrice": [
+    0
+  ],
+  "openingPrice": [
+    0
+  ],
+  "highPrice": [
+    0
+  ],
+  "lowPrice": [
+    0
+  ],
+  "volume": [
+    0
+  ]
+}
+```
