@@ -8,7 +8,7 @@ GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
 GET http://127.0.0.1:3000/rates HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/token/WBTC HTTP/1.1
+GET http://127.0.0.1:3000/token/KSM HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
@@ -17,7 +17,13 @@ GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97
 GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
 
 ###
+GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
+
+###
 GET http://127.0.0.1:3000/orders/ETH/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/ordersMm/ETH HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
@@ -27,7 +33,10 @@ GET http://127.0.0.1:3000/bestPrices/BNB HTTP/1.1
 
 
 ###
-GET http://127.0.0.1:3000/trades/WBTC HTTP/1.1
+GET http://127.0.0.1:3000/trades/ETH HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/tradesMm/ETH HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/trades/WBTC?page=0&pageSize=5 HTTP/1.1
@@ -39,7 +48,10 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balances/WBTC/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+GET http://127.0.0.1:3000/balances/ETH/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/balancesMm/ETH HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/sudo/deposit HTTP/1.1
@@ -63,13 +75,35 @@ content-type: application/json
 }
 
 ###
+POST http://127.0.0.1:3000/deposit HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "ETH",
+  "amount": 11,
+  "isUsingPool": true
+}
+
+###
 POST http://127.0.0.1:3000/withdraw HTTP/1.1
 content-type: application/json
 
 {
   "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "WBTC",
-  "amount": 0.01
+  "token": "ETH",
+  "amount": 11
+}
+
+###
+POST http://127.0.0.1:3000/withdraw HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "ETH",
+  "amount": 11,
+  "isUsingPool": true
 }
 
 ###
@@ -92,10 +126,23 @@ content-type: application/json
 
 {
   "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "GENS",
-  "limitPrice": 0.029,
-  "amount": 1000,
-  "direction": "Sell"
+  "token": "ETH",
+  "limitPrice": 3101,
+  "amount": 7,
+  "direction": "sell",
+}
+
+###
+POST http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "ETH",
+  "limitPrice": 3101,
+  "amount": 7,
+  "direction": "sell",
+  "isUsingPool": true
 }
 
 ###
@@ -108,10 +155,27 @@ content-type: application/json
   "limitPrice": 39002,
   "limitPriceNew": 39003,
   "amountNew": 0.1,
-  "direction": "Buy",
+  "direction": "sell",
   "messageId": "16454558118451",
   "nonce": 71,
   "tip": 10
+}
+
+###
+PUT http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "ETH",
+  "limitPrice": 3101,
+  "limitPriceNew": 3091,
+  "amountNew": 7,
+  "direction": "sell",
+  "messageId": "16497657461334",
+  "nonce": 51,
+  "tip": 10,
+  "isUsingPool": true
 }
 
 ###
@@ -126,6 +190,18 @@ content-type: application/json
   "token": "WBTC",
   "price": 34940,
   "orderId": 1620
+}
+
+###
+DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "ETH",
+  "price": 3091,
+  "orderId": 58,
+  "isUsingPool": true
 }
 
 

@@ -128,6 +128,9 @@ const getBorrowerAddress$ = (address: string) =>
     )
   );
 
+export const getBorrowerAddress = (address: string) =>
+  promisify(getBorrowerAddress$(address));
+
 const genesisSubscription = genesis$.subscribe({
   next: (res) => {
     if (!isChainInfoResponse(res)) return;
@@ -177,8 +180,6 @@ const getDepth$ = (token: string, depth: string) =>
         },
         {}
       );
-
-      const parsedDepth = +depth;
 
       const bids = Object.entries(bidLevels)
         .sort(([a], [b]) => new BigNumber(b).minus(a).toNumber())
@@ -477,10 +478,12 @@ export const deposit = ({
   token,
   address,
   amount,
+  isUsingPool,
 }: {
   token: string;
   address: string;
   amount: number | string;
+  isUsingPool: boolean;
 }) => {
   const depositAsset = assetFromToken(token);
   const depositAmount = TRANSFER_PRECISION.times(amount).toString(10);
@@ -497,15 +500,15 @@ export const deposit = ({
   nonces.set(address, currentNonce + 1);
 
   const deposit$ = api$.pipe(
-    switchMap((api) =>
-      api.tx
-        .toSubaccount("Borrower", depositAsset, depositAmount)
-        .signAndSend(depositPair, { nonce: currentNonce })
-        .pipe(
-          filter((res) => res.isFinalized || res.isInBlock),
-          handleTx(api._api)
-        )
-    )
+    switchMap((api) => {
+      const ex = isUsingPool
+        ? api.tx.mmDeposit(depositAmount, depositAsset)
+        : api.tx.toSubaccount("Borrower", depositAsset, depositAmount);
+      return ex.signAndSend(depositPair, { nonce: currentNonce }).pipe(
+        filter((res) => res.isFinalized || res.isInBlock),
+        handleTx(api._api)
+      );
+    })
   );
 
   return promisify(deposit$);
@@ -515,10 +518,12 @@ export const withdraw = ({
   token,
   address,
   amount,
+  isUsingPool,
 }: {
   token: string;
   address: string;
   amount: number | string;
+  isUsingPool: boolean;
 }) => {
   const withdrawAsset = assetFromToken(token);
   const withdrawAmount = TRANSFER_PRECISION.times(amount).toString(10);
@@ -534,15 +539,15 @@ export const withdraw = ({
   nonces.set(address, currentNonce + 1);
 
   const withdraw$ = api$.pipe(
-    switchMap((api) =>
-      api.tx
-        .fromSubaccount("Borrower", withdrawAsset, withdrawAmount)
-        .signAndSend(withdrawPair, { nonce: currentNonce })
-        .pipe(
-          filter((res) => res.isFinalized || res.isInBlock),
-          handleTx(api._api)
-        )
-    )
+    switchMap((api) => {
+      const ex = isUsingPool
+        ? api.tx.mmWithdraw(withdrawAmount, withdrawAsset)
+        : api.tx.fromSubaccount("Borrower", withdrawAsset, withdrawAmount);
+      return ex.signAndSend(withdrawPair, { nonce: currentNonce }).pipe(
+        filter((res) => res.isFinalized || res.isInBlock),
+        handleTx(api._api)
+      );
+    })
   );
 
   return promisify(withdraw$);
@@ -556,12 +561,14 @@ export const createLimitOrder = ({
   address,
   tip,
   nonce,
+  isUsingPool,
 }: {
   token: string;
   amount: number | string;
   limitPrice: number | string;
   direction: Direction;
   address: string;
+  isUsingPool: boolean;
   tip?: number;
   nonce?: number;
 }) => {
@@ -581,14 +588,16 @@ export const createLimitOrder = ({
   typeof nonce === "undefined" && nonces.set(address, currentNonce + 1);
 
   const createOrder$ = api$.pipe(
-    switchMap((api) =>
-      api.tx
-        .dexCreateOrder(
-          createOrderAsset,
-          { Limit: { price: createOrderLimitPrice, expiration_time: 0 } },
-          createOrderDirection,
-          createOrderAmount
-        )
+    switchMap((api) => {
+      const createOrder = isUsingPool
+        ? api.tx.mmCreateOrder
+        : api.tx.dexCreateOrder;
+      return createOrder(
+        createOrderAsset,
+        { Limit: { price: createOrderLimitPrice, expiration_time: 0 } },
+        createOrderDirection,
+        createOrderAmount
+      )
         .signAndSend(pair, {
           nonce: currentNonce,
           tip: tip ?? 0,
@@ -598,8 +607,8 @@ export const createLimitOrder = ({
             return res.isFinalized || res.isInBlock;
           }),
           handleTx(api._api)
-        )
-    )
+        );
+    })
   );
 
   const messageId = getMessageId();
@@ -646,6 +655,7 @@ export const updateLimitOrder = async ({
   direction,
   address,
   tip,
+  isUsingPool,
   nonce,
 }: {
   messageId: string;
@@ -656,6 +666,7 @@ export const updateLimitOrder = async ({
   direction: Direction;
   address: string;
   tip: number;
+  isUsingPool: boolean;
   nonce?: number;
 }) => {
   const orderState = getMessage(messageId);
@@ -678,6 +689,7 @@ export const updateLimitOrder = async ({
         price: limitPrice,
         orderId,
         address,
+        isUsingPool,
       });
 
       if (limitPriceNew === 0 || amountNew === 0)
@@ -693,6 +705,7 @@ export const updateLimitOrder = async ({
         limitPrice: limitPriceNew,
         direction,
         address,
+        isUsingPool,
       });
     } catch (e) {
       return getError((e as Error).toString());
@@ -762,6 +775,7 @@ export const updateLimitOrder = async ({
       address,
       nonce,
       tip,
+      isUsingPool,
     });
   }
 
@@ -773,11 +787,13 @@ export const cancelLimitOrder = ({
   price,
   orderId,
   address,
+  isUsingPool,
 }: {
   token: string;
   price: number;
   orderId: number;
   address: string;
+  isUsingPool: boolean;
 }) => {
   const cancelOrderAsset = assetFromToken(token);
   const cancelOrderPrice = PRICE_PRECISION.times(price).toString(10);
@@ -792,15 +808,17 @@ export const cancelLimitOrder = ({
   nonces.set(address, currentNonce + 1);
 
   const cancelOrder$ = api$.pipe(
-    switchMap((api) =>
-      api._api.tx.eqDex
-        .deleteOrderExternal(cancelOrderAsset, orderId, cancelOrderPrice)
+    switchMap((api) => {
+      const deleteOrder = isUsingPool
+        ? api.tx.mmDeleteOrder
+        : api.tx.dexDeleteOrder;
+      return deleteOrder(cancelOrderAsset, orderId, cancelOrderPrice)
         .signAndSend(cancelOrderPair, { nonce: currentNonce })
         .pipe(
           filter((res) => res.isFinalized || res.isInBlock),
           handleTx(api._api)
-        )
-    )
+        );
+    })
   );
 
   return promisify(cancelOrder$);

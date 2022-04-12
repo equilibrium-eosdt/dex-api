@@ -36,6 +36,12 @@ CHAIN_NODE="wss://devnet.genshiro.io"
 API_ENDPOINT="https://apiv3.equilibrium.io/api"
 ```
 
+If you have account to master pools add it to environment
+
+```
+POOLS_MASTER="cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF"
+```
+
 ## Run service in dev mode
 
 ```
@@ -720,6 +726,235 @@ Response is array of `eqDex.createOrder` extrinsics
   },
   ...
 ]
+```
+
+## Working with mm pools
+
+Some actions can be made using mm pools (if you have account which masters them).
+
+They are similar to ordinary actions except naming (`orders` -> `ordersMm`) for GET requests
+or `"isUsingPool": true` parameter for POSTlike requests
+
+Such requests must be called using account set up to master pools.
+
+Requests are similar to ordinary ones - please read their description above
+
+### Setup env variables
+
+If you have account to master pools add it to environment
+
+```
+$ cat .env
+POOLS_MASTER="cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF"
+```
+
+### Get order list for pool master
+
+Request order list for token (e.g. WBTC)
+
+```
+GET http://127.0.0.1:3000/ordersMm/WBTC HTTP/1.1
+```
+
+Response is array of orders currently registered on chain
+
+```
+
+[
+  {
+    "id": 36,
+    "account": "cZhbYJCcmnJnRTvbx5YVvrUrt45PL9sgwoT4e4HvpVjFKNvsA",
+    "side": "buy",
+    "price": "34950.0",
+    "amount": "1.0",
+    "createdAt": "1644842586",
+    "expirationTime": "0"
+  },
+  ...
+]
+```
+
+### Get trades from history api
+
+Request trades by token from history API
+
+```
+GET http://127.0.0.1:3000/tradesMm/WBTC HTTP/1.1
+```
+
+Response is array of trades
+
+```
+[
+  {
+    "id": 289,
+    "chainId": 1008,
+    "eventCounter": 1,
+    "currency": "WBTC",
+    "price": 35010,
+    "amount": 1,
+    "takerRest": 0,
+    "makerAccountId": "cZexYhjJa3nh9wWiEVSczvVhneHWXcLBnm3SRP6gY6QGSdNRA",
+    "takerAccountId": "cZexYhjJa3nh9wWiEVSczvVhneHWXcLBnm3SRP6gY6QGSdNRA",
+    "makerSide": "Sell",
+    "makerOrderId": 26,
+    "blockNumber": 233522,
+    "exchangeDate": "2022-02-11T15:07:12",
+    "takerFee": 35.01,
+    "makerFee": 17.505
+  },
+  ...
+]
+```
+
+Use pagination when possible
+
+```
+GET http://127.0.0.1:3000/tradesMm/WBTC?page=0&pageSize=5 HTTP/1.1
+```
+
+Defaults are `page=0` and `pageSize=100`
+
+### Get balances for pool master
+
+To get trading balances send `GET` request `balancesMm/:token`
+
+```
+GET http://127.0.0.1:3000/balancesMm/WBTC HTTP/1.1
+```
+
+Response looks like
+
+```
+{
+  "masterBalance": "1000000899999941400",
+  "tradingBalance": "100000000000"
+}
+```
+
+### Get locked balances
+
+To get info on account balances locked by orders send `GET` request `/lockedBalanceMm`
+
+```
+GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
+```
+
+You should recieve
+
+```
+{
+  "collateralUsd": "260154.7442",
+  "debtUsd": "0",
+  "lockedUsd": "124787",
+  "availableUsd": "135367.7442"
+}
+```
+
+### Deposit funds from pool to trading subaccount
+
+To start trading you should deposit funds to trading account.
+Use deposit request with `address` pool master
+
+```
+POST http://127.0.0.1:3000/deposit HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
+  "token": "WBTC",
+  "amount": 0.01,
+  "isUsingPool": true
+}
+```
+
+Request is synchronous. Wait until operation is completed.
+
+Funds fill be transferred FROM POOL in request to trading subaccount.
+
+Balance precision is 10^9. Divide by 10^9 to get token amount.
+
+### Withdraw funds from trading subaccount to pool
+
+Use withdraw request with `address` pool master
+
+```
+POST http://127.0.0.1:3000/withdraw HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
+  "token": "WBTC",
+  "amount": 0.01,
+  "isUsingPool": true
+}
+```
+
+Request is synchronous. Wait until operation is completed.
+
+Funds fill be transferred TO address in request rom trading subaccount.
+
+### Register limit order
+
+To register limit order you can send request with `address` pool master
+
+The difference for pool master is `"isUsingPool": true` parameter
+
+```
+POST http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "limitPrice": 34940,
+  "amount": 1,
+  "direction": "buy",
+  "isUsingPool": true
+}
+```
+
+### Cancel limit order
+
+To cancel limit order send `DELETE` request with `address` pool master
+
+The difference for pool master is `"isUsingPool": true` parameter
+
+```
+DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "ETH",
+  "price": 3091,
+  "orderId": 58,
+  "isUsingPool": true
+}
+```
+
+## Replace limit order
+
+You can replace limit order using `PUT` limitOrder request.
+
+The difference for pool master is `"isUsingPool": true` parameter
+
+```
+PUT http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "limitPrice": 39002,
+  "limitPriceNew": 39003,
+  "amountNew": 0.1,
+  "direction": "buy",
+  "messageId": "16454558118451",
+  "nonce": 71,
+  "tip": 10,
+  "isUsingPool": true
+}
 ```
 
 ## Build and run

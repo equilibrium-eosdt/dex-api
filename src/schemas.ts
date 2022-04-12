@@ -133,6 +133,17 @@ export const depositSchema: FastifySchema = {
   },
 };
 
+export const depositMmSchema: FastifySchema = {
+  body: {
+    type: "object",
+    required: ["token", "amount"],
+    properties: {
+      token,
+      amount,
+    },
+  },
+};
+
 export const withdrawSchema = depositSchema;
 
 export const createLimitOrderSchema: FastifySchema = {
@@ -145,6 +156,7 @@ export const createLimitOrderSchema: FastifySchema = {
       amount,
       limitPrice: { type: "number", exclusiveMinimum: 0 },
       direction: { type: "string", enum: DIRECTIONS },
+      isUsingPool: { type: "boolean" },
     },
   },
 };
@@ -158,6 +170,7 @@ export const cancelLimitOrderSchema: FastifySchema = {
       address,
       price: { type: "number", exclusiveMinimum: 0 },
       orderId: { type: "number" },
+      isUsingPool: { type: "boolean" },
     },
   },
 };
@@ -184,6 +197,7 @@ export const updateLimitOrderSchema: FastifySchema = {
       messageId: { type: "string" },
       nonce: { type: "number" },
       tip: { type: "number" },
+      isUsingPool: { type: "boolean" },
     },
   },
 };
