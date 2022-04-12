@@ -1022,25 +1022,5 @@ number($float)]
 Response example
 
 ```
-{
-  "statusCode": 0,
-  "barTime": [
-    0
-  ],
-  "closingPrice": [
-    0
-  ],
-  "openingPrice": [
-    0
-  ],
-  "highPrice": [
-    0
-  ],
-  "lowPrice": [
-    0
-  ],
-  "volume": [
-    0
-  ]
-}
+{"s":"ok","t":[1649116800],"c":[43050.0],"o":[43050.0],"h":[43050.0],"l":[43050.0],"v":[12915.0]}
 ```
