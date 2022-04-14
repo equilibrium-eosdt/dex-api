@@ -65,6 +65,23 @@ Chain id is requested automatically on service start and is used for history api
 
 Use `requests.http` to test service in dev mode. VSCode extension `REST Client` is very handy for http requests.
 
+## Get chain id
+
+Request chain id using `GET` request `/chainId`
+
+```
+GET http://127.0.0.1:3000/chainId HTTP/1.1
+```
+
+Successful response:
+
+```
+{
+  "success": true,
+  "chainId": 10006
+}
+```
+
 ## Tokens whitelist
 
 When `token` is in request it is validated using schema

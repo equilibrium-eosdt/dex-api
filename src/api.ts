@@ -142,6 +142,8 @@ const genesisSubscription = genesis$.subscribe({
   },
 });
 
+export const getChainId = () => ({ success: !!chainId, chainId });
+
 const getOrders$ = (token: string): Observable<unknown> => {
   if (orderObservables.has(token)) {
     return orderObservables.get(token)!;

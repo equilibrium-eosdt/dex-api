@@ -20,6 +20,7 @@ import {
   getDepth,
   getToken,
   getBorrowerAddress,
+  getChainId,
 } from "./api";
 import { POOLS_MASTER } from "./constants";
 
@@ -43,6 +44,10 @@ import {
 } from "./schemas";
 
 export const routes = async (server: FastifyInstance) => {
+  server.get("/chainId", async () => {
+    return getChainId();
+  });
+
   server.get(
     "/token/:token",
     { schema: ordersSchema },

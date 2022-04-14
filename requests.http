@@ -1,4 +1,36 @@
 ###
+GET http://127.0.0.1:3000/chainId HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/rates HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/token/KSM HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/orders/ETH/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/ordersMm/ETH HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/bestPrices/BNB HTTP/1.1
+###
 GET http://127.0.0.1:3000/orders/WBTC HTTP/1.1
 
 ###
