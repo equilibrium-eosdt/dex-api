@@ -9,8 +9,13 @@ import {
   catchError,
   of,
   filter,
+  from,
   map,
+  take,
   combineLatestWith,
+  flatMap,
+  mergeMap,
+  mergeAll,
 } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
@@ -824,6 +829,48 @@ export const cancelLimitOrder = ({
   );
 
   return promisify(cancelOrder$);
+};
+
+export const cancelLimitOrders = ({
+  orders,
+  address,
+  isUsingPool,
+}: {
+  orders: { token: string; price: number; orderId: number }[];
+  address: string;
+  isUsingPool: boolean;
+}) => {
+  const cancelOrderPair = keyring?.getPair(address);
+
+  if (!cancelOrderPair) return getError("Address not found in keyring");
+
+  const cancelOrders$ = api$.pipe(
+    map((api) => {
+      const deleteOrder = isUsingPool
+        ? api.tx.mmDeleteOrder
+        : api.tx.dexDeleteOrder;
+      const currentNonce = nonces.get(address);
+      nonces.set(address, currentNonce!);
+
+      return api
+        .batch(
+          orders.map(({ orderId, token, price }) => {
+            const asset = assetFromToken(token);
+            const orderPrice = PRICE_PRECISION.times(price).toString(10);
+
+            return deleteOrder(asset, orderId, orderPrice);
+          })
+        )
+        .signAndSend(cancelOrderPair, { nonce: currentNonce })
+        .pipe(
+          filter((res) => res.isFinalized || res.isInBlock),
+          handleTx(api._api)
+        );
+    }),
+    mergeAll()
+  );
+
+  return promisify(cancelOrders$);
 };
 
 export const createMarketOrder = ({

@@ -11,6 +11,7 @@ import {
   getMessage,
   createLimitOrder,
   cancelLimitOrder,
+  cancelLimitOrders,
   createMarketOrder,
   updateLimitOrder,
   getPendingExtrinsics,
@@ -316,6 +317,21 @@ export const routes = async (server: FastifyInstance) => {
         token,
         price,
         orderId,
+        address,
+        isUsingPool,
+      });
+    }
+  );
+
+  server.delete(
+    "/limitOrders",
+    async (
+      request: FastifyRequest<{ Body: Parameters<typeof cancelLimitOrders>[0] }>
+    ) => {
+      const { orders, address, isUsingPool } = request.body;
+
+      return await cancelLimitOrders({
+        orders,
         address,
         isUsingPool,
       });

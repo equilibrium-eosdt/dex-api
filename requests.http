@@ -20,7 +20,7 @@ GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDn
 GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orders/ETH/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/ordersMm/ETH HTTP/1.1
@@ -52,10 +52,10 @@ GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDn
 GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orders/ETH/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/ordersMm/ETH HTTP/1.1
+GET http://127.0.0.1:3000/ordersMm/KSM HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
@@ -80,10 +80,10 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balances/ETH/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+GET http://127.0.0.1:3000/balances/ETH/cZhCLhXs4Mu2e8i3jJFdG9kpHw8k4CTVcdBMKvWmsHLUFVS85 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balancesMm/ETH HTTP/1.1
+GET http://127.0.0.1:3000/balancesMm/EQD HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/sudo/deposit HTTP/1.1
@@ -91,8 +91,8 @@ content-type: application/json
 
 {
   "address": "cZgMUDuyxuKYbpy39TpGcUVkVdaEPvSJtWySPKuGHnz6Ge57N",
-  "to": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "GENS",
+  "to": "cZjyuAiGqyDTR56T9d7Ad6pye3dCkP8hy4VSTKr27jV5wwSkf",
+  "token": "WBTC",
   "amount": 1000000
 }
 
@@ -112,8 +112,8 @@ content-type: application/json
 
 {
   "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "ETH",
-  "amount": 11,
+  "token": "EQD",
+  "amount": 500000,
   "isUsingPool": true
 }
 
@@ -170,10 +170,10 @@ content-type: application/json
 
 {
   "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "ETH",
-  "limitPrice": 3101,
-  "amount": 7,
-  "direction": "sell",
+  "token": "KSM",
+  "limitPrice": 182,
+  "amount": 0.7,
+  "direction": "buy",
   "isUsingPool": true
 }
 
@@ -225,14 +225,43 @@ content-type: application/json
 }
 
 ###
+DELETE http://127.0.0.1:3000/limitOrders HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
+  "orders": [
+    {
+      "token": "WBTC",
+      "price": 43218,
+      "orderId": 20528
+    },
+    {
+      "token": "WBTC",
+      "price": 43218,
+      "orderId": 50735
+    },
+    {
+      "token": "WBTC",
+      "price": 43218,
+      "orderId": 50736
+    }
+  ]
+}
+
+###
+GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
+
+
+###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
 content-type: application/json
 
 {
   "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "ETH",
-  "price": 3091,
-  "orderId": 58,
+  "token": "KSM",
+  "price": 182,
+  "orderId": 40258,
   "isUsingPool": true
 }
 

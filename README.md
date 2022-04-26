@@ -950,6 +950,37 @@ content-type: application/json
 }
 ```
 
+### Cancel list of limit orders
+
+You can send `DELETE` request with `orders` array
+to cancel list of limit orders
+
+```
+DELETE http://127.0.0.1:3000/limitOrders HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
+  "orders": [
+    {
+      "token": "WBTC",
+      "price": 43218,
+      "orderId": 20528
+    },
+    {
+      "token": "WBTC",
+      "price": 43218,
+      "orderId": 50735
+    },
+    {
+      "token": "WBTC",
+      "price": 43218,
+      "orderId": 50736
+    }
+  ]
+}
+```
+
 ## Replace limit order
 
 You can replace limit order using `PUT` limitOrder request.
@@ -989,7 +1020,7 @@ You can get candle data from our public history api
 Request `GET /api/v1/udf/chains/{chainId}/history`
 
 ```
-https://apiv3.equilibrium.io/api/v1/udf/chains/10006/history?symbol=WBTC%2FEQD&resolution=1D&from=1648394458&to=1649258458&countback=2&currencyCode=EQD
+https://apiv3.equilibrium.io/api/v1/udf/chains/10006/history?symbol=WBTC%2FEQD&resolution=1D&from=1648394458&to=1649258458
 ```
 
 Parameters:
@@ -997,9 +1028,9 @@ Parameters:
 ```
 chainId: int32, required
 symbol: string
-from: int64
-to: int64
-resolution: string
+from: int64, unix timestamp in seconds
+to: int64, unix timestamp in seconds
+resolution: string, possible values are 5, 15, 30, 60, 1D, 1W, 1M
 ```
 
 Response Schema
