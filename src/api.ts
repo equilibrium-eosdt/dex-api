@@ -39,6 +39,7 @@ import {
   TRANSFER_PRECISION,
   BIG_ZERO,
   EQD_PRICE,
+  PURGE_TIMEOUT,
 } from "./constants";
 import {
   promisify,
@@ -636,6 +637,10 @@ export const createLimitOrder = ({
     next: (payload) => {
       messages.set(messageId, { success: true, pending: false, payload });
       subscription.unsubscribe();
+      Number(PURGE_TIMEOUT) > 0 &&
+        setTimeout(() => {
+          messages.delete(messageId);
+        }, Number(PURGE_TIMEOUT) * 1000);
     },
     error: (error) => {
       messages.set(messageId, {
@@ -644,6 +649,10 @@ export const createLimitOrder = ({
         payload: { error },
       });
       subscription.unsubscribe();
+      Number(PURGE_TIMEOUT) > 0 &&
+        setTimeout(() => {
+          messages.delete(messageId);
+        }, Number(PURGE_TIMEOUT) * 1000);
     },
   });
 

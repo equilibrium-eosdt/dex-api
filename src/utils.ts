@@ -39,14 +39,17 @@ export const handleTx = (api: ApiRx) =>
   map((res: ISubmittableResult) => {
     if (res.status.isInBlock || res.status.isFinalized) {
       // @ts-expect-error
-      const { success, error } = res.events.reduce<{
+      const { success, error, batchError } = res.events.reduce<{
         success: (IEvent<[DispatchInfo]> | { orderId: string })[];
         error: IEvent<[DispatchError, DispatchInfo]>[];
+        batchError: any;
       }>(
         // @ts-expect-error
         (prev, event) => {
           if (api.events.system.ExtrinsicFailed.is(event.event)) {
             return { ...prev, error: [...prev.error, event.event] };
+          } else if (api.events.utility.BatchInterrupted.is(event.event)) {
+            return { ...prev, batchError: [...prev.batchError, event.event] };
           } else if (api.events.system.ExtrinsicSuccess.is(event.event)) {
             return { ...prev, success: [...prev.success, event.event] };
           } else if (api.events.eqDex.OrderCreated.is(event.event)) {
@@ -57,11 +60,27 @@ export const handleTx = (api: ApiRx) =>
 
           return prev;
         },
-        { success: [], error: [] }
+        { success: [], error: [], batchError: [] }
       );
 
-      if (success.length) {
-        return success;
+      if (batchError.length) {
+        // @ts-expect-error
+        const decoded = batchError.map((e) => [
+          e.data[0],
+          api.registry.findMetaError(e.data[1].asModule),
+        ]);
+        const message = decoded
+          .map(
+            // @ts-expect-error
+            ([num, { section, method, docs }]) =>
+              `Batch tx failed at extrinsic #${num}. ${section}.${method}: ${docs.join(
+                " "
+              )}`
+          )
+          .join(", ");
+
+        const err = new TxError(message, decoded);
+        throw err;
       } else if (error.length) {
         // @ts-expect-error
         const decoded = error.map((e) =>
@@ -78,6 +97,8 @@ export const handleTx = (api: ApiRx) =>
 
         const err = new TxError(message, decoded);
         throw err;
+      } else if (success.length) {
+        return success;
       }
     }
   });

@@ -34,7 +34,11 @@ $ cat .env
 PORT=3000
 CHAIN_NODE="wss://devnet.genshiro.io"
 API_ENDPOINT="https://apiv3.equilibrium.io/api"
+PURGE_TIMEOUT=600
 ```
+
+`PURGE_TIMEOUT` is delay in seconds before internal dictionary entry will be purged.
+You will not be able to `GET limitOrder` after order data is purged.
 
 If you have account to master pools add it to environment
 
@@ -961,6 +965,7 @@ content-type: application/json
 
 {
   "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
+  "isUsingPool": true,
   "orders": [
     {
       "token": "WBTC",
@@ -980,6 +985,20 @@ content-type: application/json
   ]
 }
 ```
+
+Response is similar to cancel single order request
+
+If extrinsic will fail in batch you will get
+
+```
+{
+  "statusCode": 500,
+  "error": "Internal Server Error",
+  "message": "Batch tx failed at extrinsic #3. eqDex.OrderNotFound:  No order found by id and price"
+}
+```
+
+It means that 3 orders successfully cancelled (0, 1 and 2) and 4th and all following orders were not cancelled.
 
 ## Replace limit order
 
