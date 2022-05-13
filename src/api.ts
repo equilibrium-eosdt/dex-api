@@ -9,13 +9,10 @@ import {
   catchError,
   of,
   filter,
-  from,
   map,
-  take,
   combineLatestWith,
-  flatMap,
-  mergeMap,
   mergeAll,
+  firstValueFrom,
 } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
@@ -840,7 +837,7 @@ export const cancelLimitOrder = ({
   return promisify(cancelOrder$);
 };
 
-export const cancelLimitOrders = ({
+export const cancelLimitOrders = async ({
   orders,
   address,
   isUsingPool,
@@ -858,28 +855,80 @@ export const cancelLimitOrders = ({
       const deleteOrder = isUsingPool
         ? api.tx.mmDeleteOrder
         : api.tx.dexDeleteOrder;
-      const currentNonce = nonces.get(address);
-      nonces.set(address, currentNonce!);
 
-      return api
-        .batch(
-          orders.map(({ orderId, token, price }) => {
-            const asset = assetFromToken(token);
-            const orderPrice = PRICE_PRECISION.times(price).toString(10);
-
-            return deleteOrder(asset, orderId, orderPrice);
-          })
-        )
-        .signAndSend(cancelOrderPair, { nonce: currentNonce })
-        .pipe(
-          filter((res) => res.isFinalized || res.isInBlock),
-          handleTx(api._api)
-        );
-    }),
-    mergeAll()
+      return orders.map(({ token, price, orderId }) => {
+        const currentNonce = nonces.get(address);
+        nonces.set(address, currentNonce! + 1);
+        const asset = assetFromToken(token);
+        const orderPrice = PRICE_PRECISION.times(price).toString(10);
+        return deleteOrder(asset, orderId, orderPrice)
+          .signAndSend(cancelOrderPair, { nonce: currentNonce })
+          .pipe(
+            filter((res) => res.isFinalized || res.isInBlock),
+            handleTx(api._api)
+          );
+      });
+    })
   );
 
-  return promisify(cancelOrders$);
+  const orders$ = await firstValueFrom(cancelOrders$);
+
+  const messageId = getMessageId();
+  const payload = {
+    message: "Orders are cancelling",
+    messageId,
+    orders,
+    events: [],
+  };
+
+  messages.set(messageId, {
+    success: true,
+    pending: false,
+    payload,
+  });
+
+  orders$.forEach((order$) => {
+    const sub = order$.subscribe({
+      next: (payload) => {
+        const message = messages.get(messageId);
+        const rootPayload: any = message?.payload;
+        const nextPayload = {
+          ...rootPayload,
+          events: [
+            ...rootPayload.events,
+            { success: true, pending: false, payload },
+          ],
+        };
+        // @ts-expect-error
+        messages.set(messageId, { ...message, payload: nextPayload });
+        sub.unsubscribe();
+      },
+      error: (e) => {
+        const message = messages.get(messageId);
+        const rootPayload: any = message?.payload;
+        const nextPayload = {
+          ...rootPayload,
+          events: [
+            ...rootPayload.events,
+            { success: false, pending: false, error: e?.toString() },
+          ],
+        };
+        // @ts-expect-error
+        messages.set(messageId, { ...message, payload: nextPayload });
+        sub.unsubscribe();
+      },
+    });
+  });
+
+  Number(PURGE_TIMEOUT) > 0 &&
+    setTimeout(() => {
+      messages.delete(messageId);
+    }, Number(PURGE_TIMEOUT) * 1000);
+
+  return {
+    success: true,
+    payload,
+  };
 };
 
 export const createMarketOrder = ({

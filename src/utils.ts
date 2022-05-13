@@ -56,6 +56,10 @@ export const handleTx = (api: ApiRx) =>
             // @ts-expect-error
             const orderId = event.event.data[1].toString();
             return { ...prev, success: [...prev.success, { orderId }] };
+          } else if (api.events.eqDex.OrderDeleted.is(event.event)) {
+            // @ts-expect-error
+            const orderId = event.event.data[1].toString();
+            return { ...prev, success: [...prev.success, { orderId }] };
           }
 
           return prev;

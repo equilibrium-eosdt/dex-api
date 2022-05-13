@@ -969,36 +969,191 @@ content-type: application/json
   "orders": [
     {
       "token": "WBTC",
-      "price": 43218,
-      "orderId": 20528
+      "price": 42900,
+      "orderId": 123415
     },
     {
       "token": "WBTC",
-      "price": 43218,
-      "orderId": 50735
+      "price": 42900,
+      "orderId": 123416
     },
     {
       "token": "WBTC",
-      "price": 43218,
-      "orderId": 50736
+      "price": 42900,
+      "orderId": 123417
     }
   ]
 }
 ```
 
-Response is similar to cancel single order request
-
-If extrinsic will fail in batch you will get
+You get response with `messageId`
 
 ```
 {
-  "statusCode": 500,
-  "error": "Internal Server Error",
-  "message": "Batch tx failed at extrinsic #3. eqDex.OrderNotFound:  No order found by id and price"
+  "success": true,
+  "payload": {
+    "message": "Orders are cancelling",
+    "messageId": "16524431221121",
+    "orders": [
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123415
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123416
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123417
+      }
+    ],
+    "events": []
+  }
 }
 ```
 
-It means that 3 orders successfully cancelled (0, 1 and 2) and 4th and all following orders were not cancelled.
+Use it to get orders statuses in events array with `GET http://127.0.0.1:3000/limitOrder/16524431221121 HTTP/1.1`
+If everything is ok you will receive
+
+```
+{
+  "success": true,
+  "pending": false,
+  "payload": {
+    "message": "Orders are cancelling",
+    "messageId": "16524431221121",
+    "orders": [
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123415
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123416
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123417
+      }
+    ],
+    "events": [
+      {
+        "success": true,
+        "pending": false,
+        "payload": [
+          {
+            "orderId": "123415"
+          },
+          {
+            "index": "0x0000",
+            "data": [
+              {
+                "weight": 700300000,
+                "class": "Normal",
+                "paysFee": "Yes"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "success": true,
+        "pending": false,
+        "payload": [
+          {
+            "orderId": "123416"
+          },
+          {
+            "index": "0x0000",
+            "data": [
+              {
+                "weight": 700300000,
+                "class": "Normal",
+                "paysFee": "Yes"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "success": true,
+        "pending": false,
+        "payload": [
+          {
+            "orderId": "123417"
+          },
+          {
+            "index": "0x0000",
+            "data": [
+              {
+                "weight": 700300000,
+                "class": "Normal",
+                "paysFee": "Yes"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+If error happens you will see them in events array:
+
+```
+{
+  "success": true,
+  "pending": false,
+  "payload": {
+    "message": "Orders are cancelling",
+    "messageId": "16524433895092",
+    "orders": [
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123415
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123416
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123417
+      }
+    ],
+    "events": [
+      {
+        "success": false,
+        "pending": false,
+        "error": "Error: eqDex.OrderNotFound:  No order found by id and price"
+      },
+      {
+        "success": false,
+        "pending": false,
+        "error": "Error: eqDex.OrderNotFound:  No order found by id and price"
+      },
+      {
+        "success": false,
+        "pending": false,
+        "error": "Error: eqDex.OrderNotFound:  No order found by id and price"
+      }
+    ]
+  }
+}
+```
+
+So you can compare `orders` array and `events` array. If order was successfully cancelled if will have `success: true` and payload with `{ orderId }`
 
 ## Replace limit order
 
