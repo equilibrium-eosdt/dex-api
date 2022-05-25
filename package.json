@@ -1,6 +1,6 @@
 {
   "name": "mm-api",
-  "version": "0.1.4",
+  "version": "0.2.0-alpha",
   "main": "lib/index.js",
   "license": "UNLICENSED",
   "private": true,
