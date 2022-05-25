@@ -2,7 +2,7 @@
 GET http://127.0.0.1:3000/chainId HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
+GET http://127.0.0.1:3000/orderBook/KSM?depth=20 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/rates HTTP/1.1
@@ -17,13 +17,7 @@ GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97
 GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
-
-###
 GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
-
-###
-GET http://127.0.0.1:3000/ordersMm/ETH HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
@@ -46,16 +40,10 @@ GET http://127.0.0.1:3000/token/KSM HTTP/1.1
 GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
+GET http://127.0.0.1:3000/lockedBalance/cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
-
-###
-GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
-
-###
-GET http://127.0.0.1:3000/ordersMm/KSM HTTP/1.1
+GET http://127.0.0.1:3000/orders/KSM/cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
@@ -68,9 +56,6 @@ GET http://127.0.0.1:3000/bestPrices/BNB HTTP/1.1
 GET http://127.0.0.1:3000/trades/ETH HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/tradesMm/ETH HTTP/1.1
-
-###
 GET http://127.0.0.1:3000/trades/WBTC?page=0&pageSize=5 HTTP/1.1
 
 ###
@@ -80,10 +65,22 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balances/ETH/cZhCLhXs4Mu2e8i3jJFdG9kpHw8k4CTVcdBMKvWmsHLUFVS85 HTTP/1.1
+GET http://127.0.0.1:3000/balances/KSM/cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/balancesMm/EQD HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/mmPool/WBTC HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/marketMaker/1/KSM HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/traderAddress/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/balancesMm/KSM/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/sudo/deposit HTTP/1.1
@@ -92,7 +89,7 @@ content-type: application/json
 {
   "address": "cZgMUDuyxuKYbpy39TpGcUVkVdaEPvSJtWySPKuGHnz6Ge57N",
   "to": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
-  "token": "KSM",
+  "token": "WBTC",
   "amount": 1000000
 }
 
@@ -107,13 +104,13 @@ content-type: application/json
 }
 
 ###
-POST http://127.0.0.1:3000/deposit HTTP/1.1
+POST http://127.0.0.1:3000/withdraw HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "EQD",
-  "amount": 500000,
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "token": "KSM",
+  "amount": 7,
   "isUsingPool": true
 }
 
@@ -157,11 +154,12 @@ POST http://127.0.0.1:3000/limitOrder HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "ETH",
-  "limitPrice": 3101,
-  "amount": 7,
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "token": "KSM",
+  "limitPrice": 102,
+  "amount": 8.88,
   "direction": "sell",
+  "isUsingPool": true
 }
 
 ###
@@ -211,7 +209,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/1645778926226200 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16533164867502 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -229,27 +227,18 @@ DELETE http://127.0.0.1:3000/limitOrders HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "isUsingPool": true,
   "orders": [
     {
-      "token": "WBTC",
-      "price": 42780,
-      "orderId": 72787
+      "token": "KSM",
+      "price": 102,
+      "orderId": 13
     },
     {
-      "token": "WBTC",
-      "price": 42780,
-      "orderId": 72788
-    },
-    {
-      "token": "WBTC",
-      "price": 11111,
-      "orderId": 72679
-    },
-    {
-      "token": "WBTC",
-      "price": 42800,
-      "orderId": 72678
+      "token": "KSM",
+      "price": 101,
+      "orderId": 12
     }
   ]
 }

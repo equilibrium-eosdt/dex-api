@@ -20,10 +20,11 @@ import {
   getRates,
   getDepth,
   getToken,
-  getBorrowerAddress,
   getChainId,
+  getMmPoolByToken,
+  getTraderAddress,
+  getMarketMaker,
 } from "./api";
-import { POOLS_MASTER } from "./constants";
 
 import {
   depositSchema,
@@ -79,14 +80,6 @@ export const routes = async (server: FastifyInstance) => {
   );
 
   server.get(
-    "/ordersMm/:token",
-    { schema: ordersSchema },
-    async (request: FastifyRequest<{ Params: { token: string } }>) => {
-      return await getOrdersByAddress(request.params.token, POOLS_MASTER);
-    }
-  );
-
-  server.get(
     "/orderBook/:token",
     async (
       request: FastifyRequest<{
@@ -137,24 +130,6 @@ export const routes = async (server: FastifyInstance) => {
   );
 
   server.get(
-    "/tradesMm/:token",
-    { schema: tradesSchema },
-    async (
-      request: FastifyRequest<{
-        Params: { token: string };
-        Querystring: { page: number; pageSize: number };
-      }>
-    ) => {
-      const { token } = request.params;
-      const { page, pageSize } = request.query;
-
-      const address = await getBorrowerAddress(POOLS_MASTER);
-
-      return await getTrades(token, address as string, page, pageSize);
-    }
-  );
-
-  server.get(
     "/balances/:token/:address",
     { schema: balancesSchema },
     async (
@@ -163,16 +138,6 @@ export const routes = async (server: FastifyInstance) => {
       const { token, address } = request.params;
 
       return await getBalances(token, address);
-    }
-  );
-
-  server.get(
-    "/balancesMm/:token",
-    { schema: ordersSchema },
-    async (request: FastifyRequest<{ Params: { token: string } }>) => {
-      const { token } = request.params;
-
-      return await getBalances(token, POOLS_MASTER);
     }
   );
 
@@ -196,9 +161,46 @@ export const routes = async (server: FastifyInstance) => {
     }
   );
 
-  server.get("/lockedBalanceMm", async () => {
-    return await getLockedBalance(POOLS_MASTER);
-  });
+  server.get(
+    "/mmPool/:token",
+    async (request: FastifyRequest<{ Params: { token: string } }>) => {
+      return await getMmPoolByToken(request.params.token);
+    }
+  );
+
+  server.get(
+    "/traderAddress/:address",
+    { schema: addressSchema },
+    async (request: FastifyRequest<{ Params: { address: string } }>) => {
+      return await getTraderAddress(request.params.address);
+    }
+  );
+
+  server.get(
+    "/balancesMm/:token/:address",
+    { schema: balancesSchema },
+    async (
+      request: FastifyRequest<{ Params: { token: string; address: string } }>
+    ) => {
+      const { token, address } = request.params;
+      const trader = await getTraderAddress(address);
+
+      if (typeof trader !== "string")
+        return { success: false, error: "Trader address not found" };
+
+      return await getBalances(token, trader);
+    }
+  );
+
+  server.get(
+    "/marketMaker/:mmId/:token",
+    async (
+      request: FastifyRequest<{ Params: { mmId: number; token: string } }>
+    ) => {
+      const { mmId, token } = request.params;
+      return await getMarketMaker(token, mmId);
+    }
+  );
 
   server.post(
     "/sudo/deposit",

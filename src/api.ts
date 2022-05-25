@@ -21,6 +21,8 @@ import { cryptoWaitReady } from "@polkadot/util-crypto";
 import Keyring from "@polkadot/keyring";
 import fs from "fs";
 
+import types from "./chain-types";
+
 import {
   isChainInfoResponse,
   isSeedPhrases,
@@ -53,7 +55,19 @@ import {
   SignedBalance,
 } from "@equilab/api/genshiro/interfaces";
 
-const api$ = getApiCreatorRx("Gens")(CHAIN_NODE);
+// TODO: deal with types from API
+const api$ = getApiCreatorRx("Gens")(CHAIN_NODE, { types });
+// api$
+//   .pipe(
+//     map((api) => {
+//       api.registry.createType("MmId");
+//     })
+//   )
+//   .subscribe({
+//     next: (res) => console.log("created!!!"),
+//     error: (e) => console.log("failed:::", e.toString()),
+//   });
+
 let chainId: number | undefined = undefined;
 let keyring: Keyring | undefined = undefined;
 const orderObservables = new Map<string, Observable<unknown>>();
@@ -1026,3 +1040,50 @@ export const getPendingExtrinsics = async (address: string) => {
 
   return await promisify(pendingExtrinsics$);
 };
+
+const getMmPools$ = () => api$.pipe(switchMap((api) => api.query.mmPools()));
+
+const getMmPoolByToken$ = (token: string) => {
+  const assetId = assetFromToken(token)[0];
+  return getMmPools$().pipe(
+    map((pools) =>
+      pools
+        .toArray()
+        .filter(([asset]) => asset[0].toString() === assetId.toString())
+        .map(([_, info]) => info)
+    )
+  );
+};
+
+export const getMmPoolByToken = (token: string) =>
+  promisify(getMmPoolByToken$(token));
+
+const getTraderAddress$ = (address: string) => {
+  return api$.pipe(
+    switchMap((api) => api.query.mmManagers(address)),
+    map((el) => {
+      const trader = el.unwrapOr([undefined, undefined])[1];
+
+      return { trader: trader?.toString() };
+    })
+  );
+};
+
+export const getTraderAddress = (address: string) =>
+  promisify(getTraderAddress$(address));
+
+const getMarketMaker$ = (token: string, mmId: number) => {
+  const assetId = assetFromToken(token)[0];
+  return api$.pipe(
+    switchMap((api) => api.query.marketMakers(mmId)),
+    map((weights) =>
+      weights
+        .toArray()
+        .filter(([asset]) => asset[0].toString() === assetId.toString())
+        .map(([_, info]) => info)
+    )
+  );
+};
+
+export const getMarketMaker = (token: string, mmId: number) =>
+  promisify(getMarketMaker$(token, mmId));

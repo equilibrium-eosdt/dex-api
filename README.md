@@ -753,138 +753,103 @@ Response is array of `eqDex.createOrder` extrinsics
 
 Some actions can be made using mm pools (if you have account which masters them).
 
-They are similar to ordinary actions except naming (`orders` -> `ordersMm`) for GET requests
-or `"isUsingPool": true` parameter for POSTlike requests
+Pool is created via user deposits of tokens. One pool has only one token.
 
-Such requests must be called using account set up to master pools.
+### Get pool info
 
-Requests are similar to ordinary ones - please read their description above
-
-### Setup env variables
-
-If you have account to master pools add it to environment
+You can view pool info via
 
 ```
-$ cat .env
-POOLS_MASTER="cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF"
+GET http://127.0.0.1:3000/mmPool/KSM HTTP/1.1
 ```
 
-### Get order list for pool master
-
-Request order list for token (e.g. WBTC)
-
-```
-GET http://127.0.0.1:3000/ordersMm/WBTC HTTP/1.1
-```
-
-Response is array of orders currently registered on chain
-
-```
-
-[
-  {
-    "id": 36,
-    "account": "cZhbYJCcmnJnRTvbx5YVvrUrt45PL9sgwoT4e4HvpVjFKNvsA",
-    "side": "buy",
-    "price": "34950.0",
-    "amount": "1.0",
-    "createdAt": "1644842586",
-    "expirationTime": "0"
-  },
-  ...
-]
-```
-
-### Get trades from history api
-
-Request trades by token from history API
-
-```
-GET http://127.0.0.1:3000/tradesMm/WBTC HTTP/1.1
-```
-
-Response is array of trades
+If pool exists respnonse will look like
 
 ```
 [
   {
-    "id": 289,
-    "chainId": 1008,
-    "eventCounter": 1,
-    "currency": "WBTC",
-    "price": 35010,
-    "amount": 1,
-    "takerRest": 0,
-    "makerAccountId": "cZexYhjJa3nh9wWiEVSczvVhneHWXcLBnm3SRP6gY6QGSdNRA",
-    "takerAccountId": "cZexYhjJa3nh9wWiEVSczvVhneHWXcLBnm3SRP6gY6QGSdNRA",
-    "makerSide": "Sell",
-    "makerOrderId": 26,
-    "blockNumber": 233522,
-    "exchangeDate": "2022-02-11T15:07:12",
-    "takerFee": 35.01,
-    "makerFee": 17.505
-  },
-  ...
+    "account_id": "cZj5AEB31a33YAQoiRu3TjquxQi13j8GhowFmB6TGxHpaq42H",
+    "min_amount": 10000000000,
+    "total_staked": 133000000000000,
+    "total_deposit": 132758000000000,
+    "total_borrowed": 242000000000,
+    "total_pending_withdrawals": {
+      "last_epoch": 16113,
+      "available": 0,
+      "available_next_epoch": 0,
+      "requested": 0
+    }
+  }
 ]
 ```
 
-Use pagination when possible
+Amounts has 10^9 decimals. Example above says that KSM pool has 133000 KSM deposited and 242 KSM borrowed
+
+### Pool limit for market maker
+
+Every pool can have several market makers. Each market maker can borrow X% of the pool.
+
+To find out mm limit use
 
 ```
-GET http://127.0.0.1:3000/tradesMm/WBTC?page=0&pageSize=5 HTTP/1.1
+GET http://127.0.0.1:3000/marketMaker/1/KSM HTTP/1.1
 ```
 
-Defaults are `page=0` and `pageSize=100`
-
-### Get balances for pool master
-
-To get trading balances send `GET` request `balancesMm/:token`
+Response will look like
 
 ```
-GET http://127.0.0.1:3000/balancesMm/WBTC HTTP/1.1
+[
+  {
+    "weight": 400000000,
+    "borrowed": 242000000000
+  }
+]
 ```
 
-Response looks like
+Numbers has 10^9 decimals. Response above tells us that we have 40% of KSM pool and all
+manager accounts of mm with id `1` borrowed 242 KSM.
+
+### Manager accounts and trader accounts
+
+Each market maker can have several manager accounts.
+
+These accounts can be used to sign transactions for opening and cancelling orders.
+
+But manager account does not have direct access to funds.
+
+Special trader account is created and has funds borrowed from pool.
+
+To get this account address you can request
+
+```
+GET http://127.0.0.1:3000/traderAddress/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
+```
 
 ```
 {
-  "masterBalance": "1000000899999941400",
-  "tradingBalance": "100000000000"
+  "trader": "cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76"
 }
 ```
 
-### Get locked balances
+Use this address just like ordinary acccount to request info such as `orders`, `balances`, `lockedBalance`, `trades` etc.
 
-To get info on account balances locked by orders send `GET` request `/lockedBalanceMm`
-
-```
-GET http://127.0.0.1:3000/lockedBalanceMm HTTP/1.1
-```
-
-You should recieve
-
-```
-{
-  "collateralUsd": "260154.7442",
-  "debtUsd": "0",
-  "lockedUsd": "124787",
-  "availableUsd": "135367.7442"
-}
-```
+Use your manager address to sign transactions when creating or deleting orders.
 
 ### Deposit funds from pool to trading subaccount
 
+For signed actions you should add `"isUsingPool": true` to requests and sign them with manager account.
+
 To start trading you should deposit funds to trading account.
-Use deposit request with `address` pool master
+Use deposit request with `address` of your manager account
 
 ```
 POST http://127.0.0.1:3000/deposit HTTP/1.1
 content-type: application/json
 
 {
-  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
-  "token": "WBTC",
-  "amount": 0.01,
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "token": "KSM",
+  "amount": 7,
   "isUsingPool": true
 }
 ```
@@ -897,27 +862,23 @@ Balance precision is 10^9. Divide by 10^9 to get token amount.
 
 ### Withdraw funds from trading subaccount to pool
 
-Use withdraw request with `address` pool master
+Use withdraw in similar way to return funds to pool
 
 ```
 POST http://127.0.0.1:3000/withdraw HTTP/1.1
 content-type: application/json
 
 {
-  "address": "5G1U9j8KePj67pUcQaPZuaqvdzuV5tkdnDrZq3wZCGVYBRzb",
-  "token": "WBTC",
-  "amount": 0.01,
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "token": "KSM",
+  "amount": 7,
   "isUsingPool": true
 }
 ```
 
-Request is synchronous. Wait until operation is completed.
-
-Funds fill be transferred TO address in request rom trading subaccount.
-
 ### Register limit order
 
-To register limit order you can send request with `address` pool master
+To register limit order you can send request with `address` of manager
 
 The difference for pool master is `"isUsingPool": true` parameter
 
@@ -937,7 +898,7 @@ content-type: application/json
 
 ### Cancel limit order
 
-To cancel limit order send `DELETE` request with `address` pool master
+To cancel limit order send `DELETE` request with `address` of manager
 
 The difference for pool master is `"isUsingPool": true` parameter
 
