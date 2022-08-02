@@ -83,7 +83,7 @@ if (!isSeedPhrases(SEED_PHRASES)) {
 console.info("Initializing keyring...");
 cryptoWaitReady()
   .then(() => {
-    keyring = new Keyring({ ss58Format: 67 });
+    keyring = new Keyring({ ss58Format: 68 });
     SEED_PHRASES.forEach((seed) =>
       keyring!.addFromMnemonic(seed, {}, "sr25519")
     );
