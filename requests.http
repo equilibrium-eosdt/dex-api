@@ -17,7 +17,7 @@ GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97
 GET http://127.0.0.1:3000/lockedBalance/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
+GET http://127.0.0.1:3000/orders/KSM/cZgs1wnboaga2f1Cz4f2tU1NvkqWDYvq61qNXtZd9gwnTDTFU HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
@@ -25,7 +25,7 @@ GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
 ###
 GET http://127.0.0.1:3000/bestPrices/BNB HTTP/1.1
 ###
-GET http://127.0.0.1:3000/orders/WBTC HTTP/1.1
+GET http://127.0.0.1:3000/orders/KSM HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
@@ -40,10 +40,10 @@ GET http://127.0.0.1:3000/token/KSM HTTP/1.1
 GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/lockedBalance/cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76 HTTP/1.1
+GET http://127.0.0.1:3000/lockedBalance/cZja3kBcPmQiMZAsPKXeVzrrz78FYA2NftKU1bDZLcPhckq8e HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orders/KSM/cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76 HTTP/1.1
+GET http://127.0.0.1:3000/orders/KSM/cZja3kBcPmQiMZAsPKXeVzrrz78FYA2NftKU1bDZLcPhckq8e HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
@@ -65,19 +65,19 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balances/KSM/cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76 HTTP/1.1
+GET http://127.0.0.1:3000/balances/KSM/cZkU6MjtFA6FXxpJnnLq337DNPnLp74xrGen5trac4JQvEUcq HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/balancesMm/EQD HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/mmPool/WBTC HTTP/1.1
+GET http://127.0.0.1:3000/mmPool/KSM HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/marketMaker/1/KSM HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/traderAddress/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
+GET http://127.0.0.1:3000/traderAddress/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/balancesMm/KSM/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
@@ -88,8 +88,8 @@ content-type: application/json
 
 {
   "address": "cZgMUDuyxuKYbpy39TpGcUVkVdaEPvSJtWySPKuGHnz6Ge57N",
-  "to": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
-  "token": "WBTC",
+  "to": "cZkU6MjtFA6FXxpJnnLq337DNPnLp74xrGen5trac4JQvEUcq",
+  "token": "KSM",
   "amount": 1000000
 }
 
@@ -98,9 +98,10 @@ POST http://127.0.0.1:3000/deposit HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
-  "token": "WBTC",
-  "amount": 900
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+  "token": "KSM",
+  "amount": 1000,
+  "isUsingPool": true
 }
 
 ###
@@ -108,7 +109,7 @@ POST http://127.0.0.1:3000/withdraw HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
   "token": "KSM",
   "amount": 7,
   "isUsingPool": true
@@ -147,17 +148,17 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/marketOrder/16448489453521 HTTP/1.1
+GET http://127.0.0.1:3000/marketOrder/1654699937610267 HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/limitOrder HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
   "token": "KSM",
-  "limitPrice": 102,
-  "amount": 8.88,
+  "limitPrice": 120,
+  "amount": 4,
   "direction": "sell",
   "isUsingPool": true
 }
@@ -209,7 +210,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16533164867502 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16546855013737 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -227,18 +228,18 @@ DELETE http://127.0.0.1:3000/limitOrders HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
   "isUsingPool": true,
   "orders": [
     {
       "token": "KSM",
-      "price": 102,
-      "orderId": 13
+      "price": 100,
+      "orderId": 1
     },
     {
       "token": "KSM",
-      "price": 101,
-      "orderId": 12
+      "price": 88,
+      "orderId": 2
     }
   ]
 }

@@ -1,5 +1,11 @@
-import { assetFromToken, getApiCreatorRx } from "@equilab/api";
-import { currencyFromU64 } from "@equilab/api/genshiro";
+import type { Option } from "@polkadot/types";
+import type { Codec } from "@polkadot/types/types";
+import type BN from "bn.js";
+import { getApiCreatorRx } from "@equilab/api";
+import {
+  u64FromCurrency,
+  currencyFromU64,
+} from "@equilab/api/equilibrium/util";
 import { Vec } from "@polkadot/types-codec";
 import { Order } from "@equilab/api/genshiro/interfaces";
 import BigNumber from "bignumber.js";
@@ -11,7 +17,6 @@ import {
   filter,
   map,
   combineLatestWith,
-  mergeAll,
   firstValueFrom,
 } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
@@ -20,8 +25,6 @@ import qs from "querystring";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import Keyring from "@polkadot/keyring";
 import fs from "fs";
-
-import types from "./chain-types";
 
 import {
   isChainInfoResponse,
@@ -55,18 +58,10 @@ import {
   SignedBalance,
 } from "@equilab/api/genshiro/interfaces";
 
-// TODO: deal with types from API
-const api$ = getApiCreatorRx("Gens")(CHAIN_NODE, { types });
-// api$
-//   .pipe(
-//     map((api) => {
-//       api.registry.createType("MmId");
-//     })
-//   )
-//   .subscribe({
-//     next: (res) => console.log("created!!!"),
-//     error: (e) => console.log("failed:::", e.toString()),
-//   });
+const unwrap = <T extends Codec>(opt: undefined | Option<T>): undefined | T =>
+  opt && !opt.isNone.valueOf() ? opt.unwrap() : undefined;
+
+const api$ = getApiCreatorRx("Eq")(CHAIN_NODE);
 
 let chainId: number | undefined = undefined;
 let keyring: Keyring | undefined = undefined;
@@ -97,16 +92,17 @@ cryptoWaitReady()
 
     keyring.pairs.forEach((pair) => {
       const subscription = api$
-        .pipe(
-          switchMap((api) =>
-            api._api.query.system.account<AccountInfo>(pair.address)
-          )
-        )
+        .pipe(switchMap((api) => api._api.query.system.account(pair.address)))
         .subscribe({
           next: (acc) => {
-            nonces.set(pair.address, acc.nonce.toNumber());
+            nonces.set(
+              pair.address,
+              (acc as unknown as { nonce: BN }).nonce.toNumber()
+            );
             console.info(
-              `Address added ${pair.address} with nonce ${acc.nonce.toNumber()}`
+              `Address added ${pair.address} with nonce ${(
+                acc as unknown as { nonce: BN }
+              ).nonce.toNumber()}`
             );
             subscription.unsubscribe();
           },
@@ -267,7 +263,7 @@ export const getTrades = async (
 };
 
 export const getBalances = async (token: string, address: string) => {
-  const masterBalanceAsset = assetFromToken(token);
+  const masterBalanceAsset = u64FromCurrency(token);
 
   const masterBalance = await promisify(
     api$.pipe(
@@ -312,7 +308,7 @@ const assetInfo$ = api$.pipe(
   switchMap((api) => api.query.assetInfo()),
   map((raw) =>
     raw.unwrap().map((asset) => ({
-      token: currencyFromU64(asset.id[0].toNumber()),
+      token: currencyFromU64(asset.id.toNumber()),
       asset: asset.id[0].toNumber(),
     }))
   )
@@ -477,7 +473,7 @@ export const sudoDeposit = ({
   to: string;
   amount: number | string;
 }) => {
-  const depositAsset = assetFromToken(token);
+  const depositAsset = u64FromCurrency(token);
   const depositAmount = TRANSFER_PRECISION.times(amount).toString(10);
   const depositPair = keyring?.getPair(address);
 
@@ -504,7 +500,7 @@ export const deposit = ({
   amount: number | string;
   isUsingPool: boolean;
 }) => {
-  const depositAsset = assetFromToken(token);
+  const depositAsset = u64FromCurrency(token);
   const depositAmount = TRANSFER_PRECISION.times(amount).toString(10);
 
   const depositPair = keyring?.getPair(address);
@@ -521,7 +517,7 @@ export const deposit = ({
   const deposit$ = api$.pipe(
     switchMap((api) => {
       const ex = isUsingPool
-        ? api.tx.mmDeposit(depositAmount, depositAsset)
+        ? api.tx.mmBorrow(depositAmount, depositAsset)
         : api.tx.toSubaccount("Borrower", depositAsset, depositAmount);
       return ex.signAndSend(depositPair, { nonce: currentNonce }).pipe(
         filter((res) => res.isFinalized || res.isInBlock),
@@ -544,7 +540,7 @@ export const withdraw = ({
   amount: number | string;
   isUsingPool: boolean;
 }) => {
-  const withdrawAsset = assetFromToken(token);
+  const withdrawAsset = u64FromCurrency(token);
   const withdrawAmount = TRANSFER_PRECISION.times(amount).toString(10);
 
   const withdrawPair = keyring?.getPair(address);
@@ -560,7 +556,7 @@ export const withdraw = ({
   const withdraw$ = api$.pipe(
     switchMap((api) => {
       const ex = isUsingPool
-        ? api.tx.mmWithdraw(withdrawAmount, withdrawAsset)
+        ? api.tx.mmRepay(withdrawAmount, withdrawAsset)
         : api.tx.fromSubaccount("Borrower", withdrawAsset, withdrawAmount);
       return ex.signAndSend(withdrawPair, { nonce: currentNonce }).pipe(
         filter((res) => res.isFinalized || res.isInBlock),
@@ -591,7 +587,7 @@ export const createLimitOrder = ({
   tip?: number;
   nonce?: number;
 }) => {
-  const createOrderAsset = assetFromToken(token);
+  const createOrderAsset = u64FromCurrency(token);
   const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString(10);
   const createOrderDirection = capitalize(direction);
   const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
@@ -822,7 +818,7 @@ export const cancelLimitOrder = ({
   address: string;
   isUsingPool: boolean;
 }) => {
-  const cancelOrderAsset = assetFromToken(token);
+  const cancelOrderAsset = u64FromCurrency(token);
   const cancelOrderPrice = PRICE_PRECISION.times(price).toString(10);
   const cancelOrderPair = keyring?.getPair(address);
 
@@ -873,7 +869,7 @@ export const cancelLimitOrders = async ({
       return orders.map(({ token, price, orderId }) => {
         const currentNonce = nonces.get(address);
         nonces.set(address, currentNonce! + 1);
-        const asset = assetFromToken(token);
+        const asset = u64FromCurrency(token);
         const orderPrice = PRICE_PRECISION.times(price).toString(10);
         return deleteOrder(asset, orderId, orderPrice)
           .signAndSend(cancelOrderPair, { nonce: currentNonce })
@@ -956,7 +952,7 @@ export const createMarketOrder = ({
   direction: Direction;
   address: string;
 }) => {
-  const createOrderAsset = assetFromToken(token);
+  const createOrderAsset = u64FromCurrency(token);
   const createOrderDirection = capitalize(direction);
   const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
 
@@ -1041,15 +1037,15 @@ export const getPendingExtrinsics = async (address: string) => {
   return await promisify(pendingExtrinsics$);
 };
 
-const getMmPools$ = () => api$.pipe(switchMap((api) => api.query.mmPools()));
+const getMmPools$ = () => api$.pipe(switchMap((api) => api.query.getMmPools()));
 
 const getMmPoolByToken$ = (token: string) => {
-  const assetId = assetFromToken(token)[0];
+  const assetId = u64FromCurrency(token);
   return getMmPools$().pipe(
     map((pools) =>
       pools
         .toArray()
-        .filter(([asset]) => asset[0].toString() === assetId.toString())
+        .filter(([asset]) => asset.toString() === assetId.toString())
         .map(([_, info]) => info)
     )
   );
@@ -1060,7 +1056,7 @@ export const getMmPoolByToken = (token: string) =>
 
 const getTraderAddress$ = (address: string) => {
   return api$.pipe(
-    switchMap((api) => api.query.mmManagers(address)),
+    switchMap((api) => api.query.getMmManagers(address)),
     map((el) => {
       const trader = el.unwrapOr([undefined, undefined])[1];
 
@@ -1073,13 +1069,13 @@ export const getTraderAddress = (address: string) =>
   promisify(getTraderAddress$(address));
 
 const getMarketMaker$ = (token: string, mmId: number) => {
-  const assetId = assetFromToken(token)[0];
+  const assetId = u64FromCurrency(token);
   return api$.pipe(
-    switchMap((api) => api.query.marketMakers(mmId)),
+    switchMap((api) => api.query.getMmMarketMakers(mmId)),
     map((weights) =>
       weights
         .toArray()
-        .filter(([asset]) => asset[0].toString() === assetId.toString())
+        .filter(([asset]) => asset.toString() === assetId.toString())
         .map(([_, info]) => info)
     )
   );
