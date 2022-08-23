@@ -1,6 +1,6 @@
 {
   "name": "mm-api",
-  "version": "0.2.0-alpha",
+  "version": "1.0.0",
   "main": "lib/index.js",
   "license": "UNLICENSED",
   "private": true,
@@ -11,7 +11,7 @@
     "inspect": "source .env && node --inspect=0.0.0.0:9229 --require ts-node/register src/server.ts"
   },
   "dependencies": {
-    "@equilab/api": "1.12.21",
+    "@equilab/api": "1.12.23",
     "abort-controller": "3.0.0",
     "bignumber.js": "9.0.2",
     "dotenv": "16.0.0",
