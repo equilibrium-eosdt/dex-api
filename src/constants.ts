@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { Direction } from "./types";
 
 // Whitelist of tokens
-export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB", "KSM", "DOT"];
+export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB", "KSM", "DOT", "EQ"];
 
 export const DIRECTIONS = [Direction.Buy, Direction.Sell];
 export const AMOUNT_PRECISION = new BigNumber(1e18);

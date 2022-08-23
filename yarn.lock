@@ -9,20 +9,20 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@equilab/api@1.12.21":
-  version "1.12.21"
-  resolved "https://registry.yarnpkg.com/@equilab/api/-/api-1.12.21.tgz#4cdd5c45aecc2a5414740102cef73b6d7274b90b"
-  integrity sha512-q9cFcrSgKiMzVUA9qaTqxZthkgEbsVKCpXssRp4ubx1fJb6gg//svEezo6R66PMSwXSx/5O8UFrhT69f3+3EOQ==
+"@equilab/api@1.12.27":
+  version "1.12.27"
+  resolved "https://registry.yarnpkg.com/@equilab/api/-/api-1.12.27.tgz#4e647e9a6ff1d2ee956e85a60ef74a272364eee7"
+  integrity sha512-o3FUdRIXCAw3BF+iaa2uAKb74K5m/8BTrb/t+L0GQoZooKMSl4XCdrRk6YCQ2czaiXwNVB01X1P4guMW/ssH3Q==
   dependencies:
-    "@equilab/definitions" "1.4.12"
+    "@equilab/definitions" "1.4.13"
     "@polkadot/api" "8.13.1"
     abort-controller "^3.0.0"
     isomorphic-fetch "^3.0.0"
 
-"@equilab/definitions@1.4.12":
-  version "1.4.12"
-  resolved "https://registry.yarnpkg.com/@equilab/definitions/-/definitions-1.4.12.tgz#3c013d3682c05dbbb63e467cfcca0c712764092c"
-  integrity sha512-zdatJhGgibuzoAAFIWcxM0ti/hsEhLIaEOyOqgwYxm3RBgW6ioDnjxiNv7nvndK0mzi1YR+Xux6p0T7QKyw7cw==
+"@equilab/definitions@1.4.13":
+  version "1.4.13"
+  resolved "https://registry.yarnpkg.com/@equilab/definitions/-/definitions-1.4.13.tgz#5ee6891576d653bdd0b00282a82948d83a93e94f"
+  integrity sha512-f1pEQ5W9EEGkvVdTEjwpg4YBVd0hYOBRj+NjW1+lOIF34qG5sXMT2+b/IVIvwQwSqPtiTjXuhKXroSZa7hUEPg==
 
 "@fastify/ajv-compiler@^1.0.0":
   version "1.1.0"

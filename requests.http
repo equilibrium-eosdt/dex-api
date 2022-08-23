@@ -23,12 +23,12 @@ GET http://127.0.0.1:3000/orders/KSM/cZgs1wnboaga2f1Cz4f2tU1NvkqWDYvq61qNXtZd9gw
 GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/bestPrices/BNB HTTP/1.1
+GET http://127.0.0.1:3000/bestPrices/EQ HTTP/1.1
 ###
-GET http://127.0.0.1:3000/orders/KSM HTTP/1.1
+GET http://127.0.0.1:3000/orders/EQ HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orderBook/WBTC?depth=2 HTTP/1.1
+GET http://127.0.0.1:3000/orderBook/EQ?depth=2 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/rates HTTP/1.1
@@ -65,7 +65,7 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balances/KSM/cZkU6MjtFA6FXxpJnnLq337DNPnLp74xrGen5trac4JQvEUcq HTTP/1.1
+GET http://127.0.0.1:3000/balances/EQ/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/balancesMm/EQD HTTP/1.1
@@ -98,10 +98,10 @@ POST http://127.0.0.1:3000/deposit HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "KSM",
-  "amount": 1000,
-  "isUsingPool": true
+  "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
+  "token": "EQ",
+  "amount": 100,
+  "isUsingPool": false
 }
 
 ###
@@ -148,19 +148,19 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/marketOrder/1654699937610267 HTTP/1.1
+GET http://127.0.0.1:3000/marketOrder/16612561114441 HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/limitOrder HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "KSM",
-  "limitPrice": 120,
+  "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
+  "token": "EQ",
+  "limitPrice": 100,
   "amount": 4,
-  "direction": "sell",
-  "isUsingPool": true
+  "direction": "buy",
+  "isUsingPool": false
 }
 
 ###
@@ -210,17 +210,17 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16546855013737 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16612563958261 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "WBTC",
-  "price": 34940,
-  "orderId": 1620
+  "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
+  "token": "EQ",
+  "price": 1,
+  "orderId": 1
 }
 
 ###
