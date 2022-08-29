@@ -6,7 +6,7 @@ import { Direction } from "./types";
 export const TOKENS = ["WBTC", "ETH", "GENS", "EQD", "BNB", "KSM", "DOT", "EQ"];
 
 export const DIRECTIONS = [Direction.Buy, Direction.Sell];
-export const AMOUNT_PRECISION = new BigNumber(1e18);
+export const AMOUNT_PRECISION = new BigNumber(1e9);
 export const PRICE_PRECISION = new BigNumber(1e9);
 export const TRANSFER_PRECISION = new BigNumber(1e9);
 export const BIG_ZERO = new BigNumber(0);

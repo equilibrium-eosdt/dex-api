@@ -157,8 +157,8 @@ content-type: application/json
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
   "token": "EQ",
-  "limitPrice": 100,
-  "amount": 4,
+  "limitPrice": 0.5,
+  "amount": 1,
   "direction": "buy",
   "isUsingPool": false
 }
@@ -210,7 +210,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16612563958261 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16617640362231 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
