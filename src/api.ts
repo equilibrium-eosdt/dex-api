@@ -1,3 +1,6 @@
+import "@equilab/api/equilibrium/interfaces/augment-api";
+import "@equilab/api/equilibrium/interfaces/types-lookup";
+
 import type { Option } from "@polkadot/types";
 import type { Codec } from "@polkadot/types/types";
 import type BN from "bn.js";
@@ -7,8 +10,12 @@ import {
   currencyFromU64,
 } from "@equilab/api/equilibrium/util";
 import { Vec } from "@polkadot/types-codec";
-import { Order } from "@equilab/api/genshiro/interfaces";
 import BigNumber from "bignumber.js";
+import type {
+  EqPrimitivesDexOrder,
+  EqOraclePricePoint,
+} from "@polkadot/types/lookup";
+
 import {
   switchMap,
   Observable,
@@ -18,6 +25,7 @@ import {
   map,
   combineLatestWith,
   firstValueFrom,
+  tap,
 } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
@@ -52,11 +60,6 @@ import {
   priceToBn,
   isPosInt,
 } from "./utils";
-import {
-  AccountInfo,
-  PricePoint,
-  SignedBalance,
-} from "@equilab/api/genshiro/interfaces";
 
 const unwrap = <T extends Codec>(opt: undefined | Option<T>): undefined | T =>
   opt && !opt.isNone.valueOf() ? opt.unwrap() : undefined;
@@ -305,7 +308,7 @@ export const getBalances = async (token: string, address: string) => {
 };
 
 const assetInfo$ = api$.pipe(
-  switchMap((api) => api.query.assetInfo()),
+  switchMap((api) => api._api.query.eqAssets.assets()),
   map((raw) =>
     raw.unwrap().map((asset) => ({
       token: currencyFromU64(asset.id.toNumber()),
@@ -346,9 +349,7 @@ const getBalances$ = (address: string) =>
     switchMap(([api, assetInfo, borrowerAddress]) =>
       borrowerAddress
         ? api.query.getBalance
-            .multi<SignedBalance>(
-              assetInfo.map(({ asset }) => [borrowerAddress, asset])
-            )
+            .multi(assetInfo.map(({ asset }) => [borrowerAddress, asset]))
             .pipe(
               map((balances) =>
                 balances.map((balance, i) => ({
@@ -364,13 +365,15 @@ const getBalances$ = (address: string) =>
 const rates$ = api$.pipe(
   combineLatestWith(assetInfo$),
   switchMap(([api, assetInfo]) =>
-    api.query.getRate
-      .multi<PricePoint>(assetInfo.map(({ asset }) => [asset]))
+    api._api.query.oracle.pricePoints
+      .multi<Option<EqOraclePricePoint>>(assetInfo.map(({ asset }) => [asset]))
       .pipe(
         map((rates) =>
-          rates.map(({ price }, i) => ({
+          rates.map((rate, i) => ({
             price: priceToBn(
-              assetInfo[i].token === "Eqd" ? EQD_PRICE : price.toString(10)
+              assetInfo[i].token === "eqd"
+                ? EQD_PRICE
+                : rate.unwrapOr(undefined)?.price.toString(10) ?? "0"
             ),
             ...assetInfo[i],
           }))
@@ -419,12 +422,17 @@ const getCollateralDebtTotals$ = (address: string) =>
 
 const getLockedBalance$ = (address: string) =>
   api$.pipe(
+    // @ts-expect-error
     switchMap((api) => api._api.query.eqDex.ordersByAssetAndChunkKey.entries()),
     combineLatestWith(getBorrowerAddress$(address)),
     map(([orders, borrowerAddress]) =>
       orders
-        .flatMap(([, order]) => (order as unknown as Vec<Order>).toArray())
-        .filter(({ account_id }) => account_id.toString() === borrowerAddress)
+        .flatMap(([, order]) =>
+          (order as unknown as Vec<EqPrimitivesDexOrder>).toArray()
+        )
+        .filter((order) => {
+          return order.accountId.toString() === borrowerAddress;
+        })
     ),
     map((orders) =>
       orders.reduce((acc, { price, amount }) => {

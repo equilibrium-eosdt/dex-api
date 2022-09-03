@@ -9,10 +9,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@equilab/api@1.12.27":
-  version "1.12.27"
-  resolved "https://registry.yarnpkg.com/@equilab/api/-/api-1.12.27.tgz#4e647e9a6ff1d2ee956e85a60ef74a272364eee7"
-  integrity sha512-o3FUdRIXCAw3BF+iaa2uAKb74K5m/8BTrb/t+L0GQoZooKMSl4XCdrRk6YCQ2czaiXwNVB01X1P4guMW/ssH3Q==
+"@equilab/api@1.12.29":
+  version "1.12.29"
+  resolved "https://registry.yarnpkg.com/@equilab/api/-/api-1.12.29.tgz#10b6f78055151b34e4db3d655e87eb10aa89a170"
+  integrity sha512-BsdL9trYGa+qV/xUXiqzlNt8cv+hzoCBLS6vBKl6YtZjUeWuz9/0iHr75qEJg9zLvg62MEolnDidKqDNSJtOKQ==
   dependencies:
     "@equilab/definitions" "1.4.13"
     "@polkadot/api" "8.13.1"

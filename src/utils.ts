@@ -53,11 +53,9 @@ export const handleTx = (api: ApiRx) =>
           } else if (api.events.system.ExtrinsicSuccess.is(event.event)) {
             return { ...prev, success: [...prev.success, event.event] };
           } else if (api.events.eqDex.OrderCreated.is(event.event)) {
-            // @ts-expect-error
             const orderId = event.event.data[1].toString();
             return { ...prev, success: [...prev.success, { orderId }] };
           } else if (api.events.eqDex.OrderDeleted.is(event.event)) {
-            // @ts-expect-error
             const orderId = event.event.data[1].toString();
             return { ...prev, success: [...prev.success, { orderId }] };
           }
