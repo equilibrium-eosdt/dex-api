@@ -8,7 +8,7 @@ GET http://127.0.0.1:3000/orderBook/KSM?depth=20 HTTP/1.1
 GET http://127.0.0.1:3000/rates HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/token/KSM HTTP/1.1
+GET http://127.0.0.1:3000/token/DOT HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1

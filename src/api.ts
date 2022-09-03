@@ -321,16 +321,16 @@ const getToken$ = (token: string) =>
       raw
         .unwrap()
         .map((asset) => ({
-          token: currencyFromU64(asset.id[0].toNumber()),
-          asset: asset.id[0].toNumber(),
+          token: currencyFromU64(asset.id.toNumber()),
+          asset: asset.id.toNumber(),
           lot: new BigNumber(asset.lot.toString(10)).div(AMOUNT_PRECISION),
-          priceStep: new BigNumber(asset.price_step.toString(10)).div(
+          priceStep: new BigNumber(asset.priceStep.toString(10)).div(
             AMOUNT_PRECISION
           ),
-          makerFee: new BigNumber(asset.maker_fee.toString(10)).div(
+          makerFee: new BigNumber(asset.makerFee.toString(10)).div(
             AMOUNT_PRECISION
           ),
-          takerFee: new BigNumber(asset.taker_fee.toString(10)).div(
+          takerFee: new BigNumber(asset.takerFee.toString(10)).div(
             AMOUNT_PRECISION
           ),
         }))
@@ -347,7 +347,7 @@ const getBalances$ = (address: string) =>
       borrowerAddress
         ? api.query.getBalance
             .multi<SignedBalance>(
-              assetInfo.map(({ asset }) => [borrowerAddress, { 0: asset }])
+              assetInfo.map(({ asset }) => [borrowerAddress, asset])
             )
             .pipe(
               map((balances) =>
