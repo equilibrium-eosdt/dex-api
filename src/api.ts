@@ -309,7 +309,7 @@ const assetInfo$ = api$.pipe(
   map((raw) =>
     raw.unwrap().map((asset) => ({
       token: currencyFromU64(asset.id.toNumber()),
-      asset: asset.id[0].toNumber(),
+      asset: asset.id.toNumber(),
     }))
   )
 );
