@@ -80,7 +80,13 @@ GET http://127.0.0.1:3000/marketMaker/1/KSM HTTP/1.1
 GET http://127.0.0.1:3000/traderAddress/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/balancesMm/KSM/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
+GET http://127.0.0.1:3000/balancesMm/EQD/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/balancesMm/USDC/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/balancesMm/USDT/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
 
 ###
 POST http://127.0.0.1:3000/sudo/deposit HTTP/1.1
@@ -277,8 +283,11 @@ content-type: application/json
   "limitPrice": 300,
   "amount": 1,
   "direction": "sell",
-  "isUsingPool": false
+  "isUsingPool": true
 }
+
+###
+GET http://127.0.0.1:3000/limitOrder/16623662886741 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/orders/BNB/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1

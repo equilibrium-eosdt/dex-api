@@ -20,7 +20,7 @@ export const getError = (error: string) => ({
   payload: { error },
 });
 
-export const promisify = (o$: Observable<unknown>) => {
+export const promisify = <T>(o$: Observable<T>): Promise<T> => {
   return new Promise((resolve, reject) => {
     const subscription = o$.subscribe({
       next: (data) => {

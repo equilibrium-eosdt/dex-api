@@ -183,7 +183,7 @@ export const routes = async (server: FastifyInstance) => {
       request: FastifyRequest<{ Params: { token: string; address: string } }>
     ) => {
       const { token, address } = request.params;
-      const trader = await getTraderAddress(address);
+      const { trader } = await getTraderAddress(address);
 
       if (typeof trader !== "string")
         return { success: false, error: "Trader address not found" };
