@@ -210,7 +210,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16622117502042 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16623662886741 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -263,3 +263,22 @@ content-type: application/json
 
 ###
 GET http://127.0.0.1:3000/pendingExtrinsics/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF
+
+###
+GET http://127.0.0.1:3000/balances/BNB/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+POST http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
+  "token": "BNB",
+  "limitPrice": 300,
+  "amount": 1,
+  "direction": "sell",
+  "isUsingPool": false
+}
+
+###
+GET http://127.0.0.1:3000/orders/BNB/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
