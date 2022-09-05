@@ -280,14 +280,35 @@ content-type: application/json
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
   "token": "BNB",
-  "limitPrice": 300,
+  "limitPrice": 302,
   "amount": 1,
   "direction": "sell",
   "isUsingPool": true
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16623662886741 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16623748522734 HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orders/BNB/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+GET http://127.0.0.1:3000/orders/BNB HTTP/1.1
+
+###
+DELETE http://127.0.0.1:3000/limitOrders HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
+  "isUsingPool": true,
+  "orders": [
+    {
+      "token": "BNB",
+      "price": 301,
+      "orderId": 180
+    },
+    {
+      "token": "BNB",
+      "price": 302,
+      "orderId": 181
+    }
+  ]
+}
