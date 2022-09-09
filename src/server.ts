@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import "dotenv/config";
 
-import { PORT } from "./constants";
+import { PORT, HOST } from "./constants";
 import { routes } from "./routes";
 
 const server = Fastify({ logger: false });
@@ -19,7 +19,7 @@ if (!globalThis.fetch) {
 
 server.register(routes);
 
-server.listen(PORT, (err) => {
+server.listen(PORT, HOST, (err) => {
   if (err) {
     server.log.error(err);
     process.exit(1);
