@@ -7,6 +7,7 @@
   "scripts": {
     "build": "./node_modules/typescript/bin/tsc",
     "start": "source .env && yarn build && node lib/server.js",
+    "beta": "yarn build && node lib/server.js",
     "dev": "source .env && nodemon src/server.ts",
     "inspect": "source .env && node --inspect=0.0.0.0:9229 --require ts-node/register src/server.ts"
   },

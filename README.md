@@ -27,11 +27,12 @@ $ cat seeds.json
 
 ### Setup env variables
 
-You can setup server port, blockchain node url and history api url using .env file
+You can setup server port, host, blockchain node url and history api url using .env file
 
 ```
 $ cat .env
 PORT=3000
+HOST="0.0.0.0"
 CHAIN_NODE="wss://parachain-testnet.equilab.io/eq/collator/api/wss"
 API_ENDPOINT="https://apiv3.equilibrium.io/api"
 PURGE_TIMEOUT=600
