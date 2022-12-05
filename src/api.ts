@@ -25,7 +25,6 @@ import {
   map,
   combineLatestWith,
   firstValueFrom,
-  tap,
 } from "rxjs";
 import { fromFetch } from "rxjs/fetch";
 import fetch from "node-fetch";
@@ -135,17 +134,17 @@ const genesis$ = api$.pipe(
   )
 );
 
-const getBorrowerAddress$ = (address: string) =>
+const getTraderAddress$ = (address: string) =>
   api$.pipe(
     switchMap((api) =>
       api.query
-        .getAddress(address, "Borrower")
+        .getAddress(address, "Trader")
         .pipe(map((acc) => acc.unwrapOr(undefined)?.toString()))
     )
   );
 
-export const getBorrowerAddress = (address: string) =>
-  promisify(getBorrowerAddress$(address));
+export const getTraderAddress = (address: string) =>
+  promisify(getTraderAddress$(address));
 
 const genesisSubscription = genesis$.subscribe({
   next: (res) => {
@@ -215,10 +214,10 @@ export const getDepth = (token: string, depth: string) =>
 
 const getOrdersByAddress$ = (token: string, address: string) =>
   getOrders$(token).pipe(
-    combineLatestWith(getBorrowerAddress$(address)),
-    map(([orders, borrowerAddress]) => {
+    combineLatestWith(getTraderAddress$(address)),
+    map(([orders, traderAddress]) => {
       return (orders as { account: string }[]).filter(
-        ({ account }) => account === borrowerAddress
+        ({ account }) => account === traderAddress
       );
     })
   );
@@ -265,41 +264,57 @@ export const getTrades = async (
   return await response.json();
 };
 
-export const getBalances = async (token: string, address: string) => {
-  const masterBalanceAsset = u64FromCurrency(token);
-
-  const masterBalance = await promisify(
-    api$.pipe(
-      switchMap((api) => api.query.getBalance(address, masterBalanceAsset)),
-      map((res) =>
-        res.isPositive
-          ? res.asPositive.toString()
-          : "-" + res.asNegative.toString()
-      )
+const getBalancesByAddress$ = (
+  address: string
+): Observable<
+  {
+    token: string;
+    asset: number;
+    balance: BigNumber;
+  }[]
+> =>
+  api$.pipe(
+    switchMap((api) => api._api.query.system.account(address)),
+    map(({ data }) =>
+      data.toArray().map(([assetId, balance]) => {
+        return {
+          token: currencyFromU64(assetId),
+          asset: assetId.toNumber(),
+          balance: priceToBn(balance),
+        };
+      })
     )
   );
 
-  const tradingBalance = await promisify(
+export const getBalances = async (token: string, address: string) => {
+  const masterBalances = await promisify(getBalancesByAddress$(address));
+
+  const tradingBalances = await promisify(
     api$.pipe(
       switchMap((api) =>
-        api.query.getAddress(address, "Borrower").pipe(
+        api.query.getAddress(address, "Trader").pipe(
           switchMap((acc) => {
             const addr = acc.unwrapOr(undefined)?.toString();
 
-            if (!addr) return of(undefined);
+            if (!addr) {
+              return of(undefined);
+            }
 
-            return api.query.getBalance(addr, masterBalanceAsset);
-          }),
-          map((res) => {
-            if (!res) return "0";
-            return res.isPositive
-              ? res.asPositive.toString()
-              : "-" + res.asNegative.toString();
+            return getBalancesByAddress$(addr);
           })
         )
       )
     )
   );
+
+  const masterBalance =
+    masterBalances
+      .find((el) => el.token.toLowerCase() === token.toLowerCase())
+      ?.balance.toString() ?? "0";
+  const tradingBalance =
+    tradingBalances
+      ?.find((el) => el.token.toLowerCase() === token.toLowerCase())
+      ?.balance.toString() ?? "0";
 
   return {
     masterBalance,
@@ -343,25 +358,6 @@ const getToken$ = (token: string) =>
 
 export const getToken = (token: string) => promisify(getToken$(token));
 
-const getBalances$ = (address: string) =>
-  api$.pipe(
-    combineLatestWith(assetInfo$, getBorrowerAddress$(address)),
-    switchMap(([api, assetInfo, borrowerAddress]) =>
-      borrowerAddress
-        ? api.query.getBalance
-            .multi(assetInfo.map(({ asset }) => [borrowerAddress, asset]))
-            .pipe(
-              map((balances) =>
-                balances.map((balance, i) => ({
-                  balance: priceToBn(balance),
-                  ...assetInfo[i],
-                }))
-              )
-            )
-        : of([])
-    )
-  );
-
 const rates$ = api$.pipe(
   combineLatestWith(assetInfo$),
   switchMap(([api, assetInfo]) =>
@@ -385,7 +381,7 @@ const rates$ = api$.pipe(
 export const getRates = () => promisify(rates$);
 
 const getBalancesWithUsd$ = (address: string) =>
-  getBalances$(address).pipe(
+  getBalancesByAddress$(address).pipe(
     combineLatestWith(rates$),
     map(([balances, rates]) => {
       return balances.map((el) => ({
@@ -424,14 +420,14 @@ const getLockedBalance$ = (address: string) =>
   api$.pipe(
     // @ts-expect-error
     switchMap((api) => api._api.query.eqDex.ordersByAssetAndChunkKey.entries()),
-    combineLatestWith(getBorrowerAddress$(address)),
-    map(([orders, borrowerAddress]) =>
+    combineLatestWith(getTraderAddress$(address)),
+    map(([orders, traderAddress]) =>
       orders
         .flatMap(([, order]) =>
           (order as unknown as Vec<EqPrimitivesDexOrder>).toArray()
         )
         .filter((order) => {
-          return order.accountId.toString() === borrowerAddress;
+          return order.accountId.toString() === traderAddress;
         })
     ),
     map((orders) =>
@@ -501,12 +497,10 @@ export const deposit = ({
   token,
   address,
   amount,
-  isUsingPool,
 }: {
   token: string;
   address: string;
   amount: number | string;
-  isUsingPool: boolean;
 }) => {
   const depositAsset = u64FromCurrency(token);
   const depositAmount = TRANSFER_PRECISION.times(amount).toString(10);
@@ -524,9 +518,7 @@ export const deposit = ({
 
   const deposit$ = api$.pipe(
     switchMap((api) => {
-      const ex = isUsingPool
-        ? api.tx.mmBorrow(depositAmount, depositAsset)
-        : api.tx.toSubaccount("Borrower", depositAsset, depositAmount);
+      const ex = api.tx.toSubaccount("Trader", depositAsset, depositAmount);
       return ex.signAndSend(depositPair, { nonce: currentNonce }).pipe(
         filter((res) => res.isFinalized || res.isInBlock),
         handleTx(api._api)
@@ -541,12 +533,10 @@ export const withdraw = ({
   token,
   address,
   amount,
-  isUsingPool,
 }: {
   token: string;
   address: string;
   amount: number | string;
-  isUsingPool: boolean;
 }) => {
   const withdrawAsset = u64FromCurrency(token);
   const withdrawAmount = TRANSFER_PRECISION.times(amount).toString(10);
@@ -563,9 +553,7 @@ export const withdraw = ({
 
   const withdraw$ = api$.pipe(
     switchMap((api) => {
-      const ex = isUsingPool
-        ? api.tx.mmRepay(withdrawAmount, withdrawAsset)
-        : api.tx.fromSubaccount("Borrower", withdrawAsset, withdrawAmount);
+      const ex = api.tx.fromSubaccount("Trader", withdrawAsset, withdrawAmount);
       return ex.signAndSend(withdrawPair, { nonce: currentNonce }).pipe(
         filter((res) => res.isFinalized || res.isInBlock),
         handleTx(api._api)
@@ -584,14 +572,12 @@ export const createLimitOrder = ({
   address,
   tip,
   nonce,
-  isUsingPool,
 }: {
   token: string;
   amount: number | string;
   limitPrice: number | string;
   direction: Direction;
   address: string;
-  isUsingPool: boolean;
   tip?: number;
   nonce?: number;
 }) => {
@@ -612,9 +598,7 @@ export const createLimitOrder = ({
 
   const createOrder$ = api$.pipe(
     switchMap((api) => {
-      const createOrder = isUsingPool
-        ? api.tx.mmCreateOrder
-        : api.tx.dexCreateOrder;
+      const createOrder = api.tx.dexCreateOrder;
       return createOrder(
         createOrderAsset,
         { Limit: { price: createOrderLimitPrice, expiration_time: 0 } },
@@ -686,7 +670,6 @@ export const updateLimitOrder = async ({
   direction,
   address,
   tip,
-  isUsingPool,
   nonce,
 }: {
   messageId: string;
@@ -697,7 +680,6 @@ export const updateLimitOrder = async ({
   direction: Direction;
   address: string;
   tip: number;
-  isUsingPool: boolean;
   nonce?: number;
 }) => {
   const orderState = getMessage(messageId);
@@ -720,7 +702,6 @@ export const updateLimitOrder = async ({
         price: limitPrice,
         orderId,
         address,
-        isUsingPool,
       });
 
       if (limitPriceNew === 0 || amountNew === 0)
@@ -736,7 +717,6 @@ export const updateLimitOrder = async ({
         limitPrice: limitPriceNew,
         direction,
         address,
-        isUsingPool,
       });
     } catch (e) {
       return getError((e as Error).toString());
@@ -806,7 +786,6 @@ export const updateLimitOrder = async ({
       address,
       nonce,
       tip,
-      isUsingPool,
     });
   }
 
@@ -818,13 +797,11 @@ export const cancelLimitOrder = ({
   price,
   orderId,
   address,
-  isUsingPool,
 }: {
   token: string;
   price: number;
   orderId: number;
   address: string;
-  isUsingPool: boolean;
 }) => {
   const cancelOrderAsset = u64FromCurrency(token);
   const cancelOrderPrice = PRICE_PRECISION.times(price).toString(10);
@@ -840,9 +817,7 @@ export const cancelLimitOrder = ({
 
   const cancelOrder$ = api$.pipe(
     switchMap((api) => {
-      const deleteOrder = isUsingPool
-        ? api.tx.mmDeleteOrder
-        : api.tx.dexDeleteOrder;
+      const deleteOrder = api.tx.dexDeleteOrder;
       return deleteOrder(cancelOrderAsset, orderId, cancelOrderPrice)
         .signAndSend(cancelOrderPair, { nonce: currentNonce })
         .pipe(
@@ -858,11 +833,9 @@ export const cancelLimitOrder = ({
 export const cancelLimitOrders = async ({
   orders,
   address,
-  isUsingPool,
 }: {
   orders: { token: string; price: number; orderId: number }[];
   address: string;
-  isUsingPool: boolean;
 }) => {
   const cancelOrderPair = keyring?.getPair(address);
 
@@ -870,9 +843,7 @@ export const cancelLimitOrders = async ({
 
   const cancelOrders$ = api$.pipe(
     map((api) => {
-      const deleteOrder = isUsingPool
-        ? api.tx.mmDeleteOrder
-        : api.tx.dexDeleteOrder;
+      const deleteOrder = api.tx.dexDeleteOrder;
 
       return orders.map(({ token, price, orderId }) => {
         const currentNonce = nonces.get(address);
@@ -1044,50 +1015,3 @@ export const getPendingExtrinsics = async (address: string) => {
 
   return await promisify(pendingExtrinsics$);
 };
-
-const getMmPools$ = () => api$.pipe(switchMap((api) => api.query.getMmPools()));
-
-const getMmPoolByToken$ = (token: string) => {
-  const assetId = u64FromCurrency(token);
-  return getMmPools$().pipe(
-    map((pools) =>
-      pools
-        .toArray()
-        .filter(([asset]) => asset.toString() === assetId.toString())
-        .map(([_, info]) => info)
-    )
-  );
-};
-
-export const getMmPoolByToken = (token: string) =>
-  promisify(getMmPoolByToken$(token));
-
-const getTraderAddress$ = (address: string) => {
-  return api$.pipe(
-    switchMap((api) => api.query.getMmManagers(address)),
-    map((el) => {
-      const trader = el.unwrapOr([undefined, undefined])[1];
-
-      return { trader: trader?.toString() };
-    })
-  );
-};
-
-export const getTraderAddress = (address: string) =>
-  promisify(getTraderAddress$(address));
-
-const getMarketMaker$ = (token: string, mmId: number) => {
-  const assetId = u64FromCurrency(token);
-  return api$.pipe(
-    switchMap((api) => api.query.getMmMarketMakers(mmId)),
-    map((weights) =>
-      weights
-        .toArray()
-        .filter(([asset]) => asset.toString() === assetId.toString())
-        .map(([_, info]) => info)
-    )
-  );
-};
-
-export const getMarketMaker = (token: string, mmId: number) =>
-  promisify(getMarketMaker$(token, mmId));

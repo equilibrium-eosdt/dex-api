@@ -21,9 +21,6 @@ import {
   getDepth,
   getToken,
   getChainId,
-  getMmPoolByToken,
-  getTraderAddress,
-  getMarketMaker,
 } from "./api";
 
 import {
@@ -161,47 +158,6 @@ export const routes = async (server: FastifyInstance) => {
     }
   );
 
-  server.get(
-    "/mmPool/:token",
-    async (request: FastifyRequest<{ Params: { token: string } }>) => {
-      return await getMmPoolByToken(request.params.token);
-    }
-  );
-
-  server.get(
-    "/traderAddress/:address",
-    { schema: addressSchema },
-    async (request: FastifyRequest<{ Params: { address: string } }>) => {
-      return await getTraderAddress(request.params.address);
-    }
-  );
-
-  server.get(
-    "/balancesMm/:token/:address",
-    { schema: balancesSchema },
-    async (
-      request: FastifyRequest<{ Params: { token: string; address: string } }>
-    ) => {
-      const { token, address } = request.params;
-      const { trader } = await getTraderAddress(address);
-
-      if (typeof trader !== "string")
-        return { success: false, error: "Trader address not found" };
-
-      return await getBalances(token, trader);
-    }
-  );
-
-  server.get(
-    "/marketMaker/:mmId/:token",
-    async (
-      request: FastifyRequest<{ Params: { mmId: number; token: string } }>
-    ) => {
-      const { mmId, token } = request.params;
-      return await getMarketMaker(token, mmId);
-    }
-  );
-
   server.post(
     "/sudo/deposit",
     { schema: depositSchema },
@@ -225,13 +181,12 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof deposit>[0] }>
     ) => {
-      const { token, amount, address, isUsingPool } = request.body;
+      const { token, amount, address } = request.body;
 
       return await deposit({
         token,
         amount,
         address,
-        isUsingPool,
       });
     }
   );
@@ -242,13 +197,12 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof withdraw>[0] }>
     ) => {
-      const { token, amount, address, isUsingPool } = request.body;
+      const { token, amount, address } = request.body;
 
       return await withdraw({
         token,
         amount,
         address,
-        isUsingPool,
       });
     }
   );
@@ -259,8 +213,7 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof createLimitOrder>[0] }>
     ) => {
-      const { token, amount, limitPrice, direction, address, isUsingPool } =
-        request.body;
+      const { token, amount, limitPrice, direction, address } = request.body;
 
       return await createLimitOrder({
         token,
@@ -268,7 +221,6 @@ export const routes = async (server: FastifyInstance) => {
         limitPrice,
         direction,
         address,
-        isUsingPool,
       });
     }
   );
@@ -289,7 +241,6 @@ export const routes = async (server: FastifyInstance) => {
         address,
         nonce,
         tip,
-        isUsingPool,
       } = request.body;
 
       return await updateLimitOrder({
@@ -302,7 +253,6 @@ export const routes = async (server: FastifyInstance) => {
         direction,
         tip,
         nonce,
-        isUsingPool,
       });
     }
   );
@@ -313,14 +263,13 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof cancelLimitOrder>[0] }>
     ) => {
-      const { token, price, orderId, address, isUsingPool } = request.body;
+      const { token, price, orderId, address } = request.body;
 
       return await cancelLimitOrder({
         token,
         price,
         orderId,
         address,
-        isUsingPool,
       });
     }
   );
@@ -330,12 +279,11 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof cancelLimitOrders>[0] }>
     ) => {
-      const { orders, address, isUsingPool } = request.body;
+      const { orders, address } = request.body;
 
       return await cancelLimitOrders({
         orders,
         address,
-        isUsingPool,
       });
     }
   );

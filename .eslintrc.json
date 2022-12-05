@@ -1,0 +1,15 @@
+{
+  "extends": ["prettier", "eslint:recommended"],
+  "plugins": ["prettier", "unused-imports", "simple-import-sort"],
+  "rules": {
+    "prettier/prettier": "warn",
+    "unused-imports/no-unused-imports": "error",
+    "no-unused-vars": "warn",
+    "simple-import-sort/imports": "warn",
+    "no-console": ["error", { "allow": ["error", "debug", "warn"] }]
+  },
+  "globals": {
+    "globalThis": false,
+    "JSX": true
+  }
+}

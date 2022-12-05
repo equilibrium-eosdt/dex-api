@@ -1,8 +1,24 @@
 ###
+GET http://127.0.0.1:3000/orderBook/DOT?depth=2 HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/balances/WBTC/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/lockedBalance/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/orders/DOT HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/orders/DOT/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+
+###
 GET http://127.0.0.1:3000/chainId HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orderBook/BNB?depth=20 HTTP/1.1
+GET http://127.0.0.1:3000/orderBook/FRAX?depth=20 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/rates HTTP/1.1
@@ -20,15 +36,11 @@ GET http://127.0.0.1:3000/lockedBalance/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxx
 GET http://127.0.0.1:3000/orders/BNB/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/bestPrices/WBTC HTTP/1.1
+GET http://127.0.0.1:3000/bestPrices/DOT HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/bestPrices/EQ HTTP/1.1
-###
-GET http://127.0.0.1:3000/orders/EQ HTTP/1.1
 
-###
-GET http://127.0.0.1:3000/orderBook/EQ?depth=2 HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/rates HTTP/1.1
@@ -38,9 +50,6 @@ GET http://127.0.0.1:3000/token/KSM HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/margin/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
-
-###
-GET http://127.0.0.1:3000/lockedBalance/cZja3kBcPmQiMZAsPKXeVzrrz78FYA2NftKU1bDZLcPhckq8e HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/orders/KSM/cZja3kBcPmQiMZAsPKXeVzrrz78FYA2NftKU1bDZLcPhckq8e HTTP/1.1
@@ -64,8 +73,7 @@ GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFD
 ###
 GET http://127.0.0.1:3000/tradesByAddress/WBTC/cZhTPXeT5o3DVgEnRQ95Vi8BNiyPsDoFDovXZLCeWmDKB89WW?page=0&pageSize=3 HTTP/1.1
 
-###
-GET http://127.0.0.1:3000/balances/BNB/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
 
 ###
 GET http://127.0.0.1:3000/balancesMm/EQD HTTP/1.1
@@ -105,9 +113,8 @@ content-type: application/json
 
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
-  "token": "BNB",
-  "amount": 77,
-  "isUsingPool": false
+  "token": "WBTC",
+  "amount": 10
 }
 
 ###
@@ -136,10 +143,9 @@ POST http://127.0.0.1:3000/withdraw HTTP/1.1
 content-type: application/json
 
 {
-  "address": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-  "token": "ETH",
-  "amount": 11,
-  "isUsingPool": true
+  "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
+  "token": "WBTC",
+  "amount": 5
 }
 
 ###
@@ -162,11 +168,10 @@ content-type: application/json
 
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
-  "token": "BNB",
-  "limitPrice": 300,
+  "token": "DOT",
+  "limitPrice": 5.19,
   "amount": 1,
-  "direction": "sell",
-  "isUsingPool": false
+  "direction": "buy"
 }
 
 ###
@@ -216,7 +221,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16623662886741 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16702487497841 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -224,9 +229,9 @@ content-type: application/json
 
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
-  "token": "EQ",
-  "price": 1,
-  "orderId": 1
+  "token": "DOT",
+  "price": 5.22,
+  "orderId": 118
 }
 
 ###
@@ -238,20 +243,18 @@ content-type: application/json
   "isUsingPool": false,
   "orders": [
     {
-      "token": "BNB",
-      "price": 265,
-      "orderId": 176
+      "token": "DOT",
+      "price": 5.2,
+      "orderId": 119
     },
     {
-      "token": "BNB",
-      "price": 300,
-      "orderId": 177
+      "token": "DOT",
+      "price": 5.19,
+      "orderId": 120
     }
   ]
 }
 
-###
-GET http://127.0.0.1:3000/orders/WBTC/cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF HTTP/1.1
 
 
 ###
@@ -287,7 +290,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16623748522734 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16623802174131g HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/orders/BNB HTTP/1.1
