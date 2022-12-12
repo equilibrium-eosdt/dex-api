@@ -576,6 +576,7 @@ export const createLimitOrder = ({
   address,
   tip,
   nonce,
+  isUsingPool,
 }: {
   token: string;
   amount: number | string;
@@ -584,6 +585,7 @@ export const createLimitOrder = ({
   address: string;
   tip?: number;
   nonce?: number;
+  isUsingPool?: boolean;
 }) => {
   const createOrderAsset = u64FromCurrency(token);
   const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString(10);
@@ -803,11 +805,13 @@ export const cancelLimitOrder = ({
   price,
   orderId,
   address,
+  isUsingPool,
 }: {
   token: string;
   price: number;
   orderId: number;
   address: string;
+  isUsingPool?: boolean;
 }) => {
   const cancelOrderAsset = u64FromCurrency(token);
   const cancelOrderPrice = PRICE_PRECISION.times(price).toString(10);
@@ -841,9 +845,11 @@ export const cancelLimitOrder = ({
 export const cancelLimitOrders = async ({
   orders,
   address,
+  isUsingPool,
 }: {
   orders: { token: string; price: number; orderId: number }[];
   address: string;
+  isUsingPool?: boolean;
 }) => {
   const cancelOrderPair = keyring?.getPair(address);
 
