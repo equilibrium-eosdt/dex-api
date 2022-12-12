@@ -135,7 +135,7 @@ const genesis$ = api$.pipe(
   )
 );
 
-const getBorrowerAddress$ = (address: string) =>
+const getTraderAddress$ = (address: string) =>
   api$.pipe(
     switchMap((api) =>
       api.query
@@ -144,8 +144,8 @@ const getBorrowerAddress$ = (address: string) =>
     )
   );
 
-export const getBorrowerAddress = (address: string) =>
-  promisify(getBorrowerAddress$(address));
+export const getTraderAddress = (address: string) =>
+  promisify(getTraderAddress$(address));
 
 const genesisSubscription = genesis$.subscribe({
   next: (res) => {
@@ -215,10 +215,10 @@ export const getDepth = (token: string, depth: string) =>
 
 const getOrdersByAddress$ = (token: string, address: string) =>
   getOrders$(token).pipe(
-    combineLatestWith(getBorrowerAddress$(address)),
-    map(([orders, borrowerAddress]) => {
+    combineLatestWith(getTraderAddress$(address)),
+    map(([orders, traderAddress]) => {
       return (orders as { account: string }[]).filter(
-        ({ account }) => account === borrowerAddress
+        ({ account }) => account === traderAddress
       );
     })
   );
@@ -425,14 +425,14 @@ const getLockedBalance$ = (address: string) =>
   api$.pipe(
     // @ts-expect-error
     switchMap((api) => api._api.query.eqDex.ordersByAssetAndChunkKey.entries()),
-    combineLatestWith(getBorrowerAddress$(address)),
-    map(([orders, borrowerAddress]) =>
+    combineLatestWith(getTraderAddress$(address)),
+    map(([orders, traderAddress]) =>
       orders
         .flatMap(([, order]) =>
           (order as unknown as Vec<EqPrimitivesDexOrder>).toArray()
         )
         .filter((order) => {
-          return order.accountId.toString() === borrowerAddress;
+          return order.accountId.toString() === traderAddress;
         })
     ),
     map((orders) =>
@@ -558,11 +558,7 @@ export const withdraw = ({
 
   const withdraw$ = api$.pipe(
     switchMap((api) => {
-      const ex = api.tx.fromSubaccount(
-        "Borrower",
-        withdrawAsset,
-        withdrawAmount
-      );
+      const ex = api.tx.fromSubaccount("Trader", withdrawAsset, withdrawAmount);
       return ex.signAndSend(withdrawPair, { nonce: currentNonce }).pipe(
         filter((res) => res.isFinalized || res.isInBlock),
         handleTx(api._api)

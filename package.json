@@ -20,7 +20,7 @@
     "fs": "0.0.1-security",
     "isomorphic-fetch": "3.0.0",
     "querystring": "0.2.1",
-    "rxjs": "7.6.0"
+    "rxjs": "^7.5.7"
   },
   "devDependencies": {
     "@types/node": "14.18.1",

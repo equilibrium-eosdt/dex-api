@@ -12,7 +12,7 @@ GET http://127.0.0.1:3000/lockedBalance/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxx
 GET http://127.0.0.1:3000/orders/DOT HTTP/1.1
 
 ###
-GET http://127.0.0.1:3000/orders/DOT/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+GET http://127.0.0.1:3000/orders/EQ/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
 
 ###
 GET http://127.0.0.1:3000/chainId HTTP/1.1
@@ -121,9 +121,8 @@ content-type: application/json
 
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
-  "token": "BNB",
-  "amount": 77,
-  "isUsingPool": false
+  "token": "DOT",
+  "amount": 50
 }
 
 ###
@@ -132,9 +131,8 @@ content-type: application/json
 
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
-  "token": "BNB",
-  "amount": 77,
-  "isUsingPool": false
+  "token": "DOT",
+  "amount": 7
 }
 
 ###
@@ -178,11 +176,11 @@ content-type: application/json
 
 {
   "address": "cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A",
-  "token": "BNB",
-  "limitPrice": 300,
-  "amount": 1,
+  "token": "EQ",
+  "limitPrice": 0.00826,
+  "amount": 1000,
   "direction": "sell",
-  "isUsingPool": false
+  "isUsingPool": true
 }
 
 ###
@@ -232,7 +230,7 @@ content-type: application/json
 }
 
 ###
-GET http://127.0.0.1:3000/limitOrder/16623662886741 HTTP/1.1
+GET http://127.0.0.1:3000/limitOrder/16708445194693 HTTP/1.1
 
 ###
 DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -254,14 +252,14 @@ content-type: application/json
   "isUsingPool": false,
   "orders": [
     {
-      "token": "BNB",
-      "price": 265,
-      "orderId": 176
+      "token": "EQ",
+      "price": 0.00825,
+      "orderId": 11
     },
     {
-      "token": "BNB",
-      "price": 300,
-      "orderId": 177
+      "token": "EQ",
+      "price": 0.00826,
+      "orderId": 12
     }
   ]
 }
