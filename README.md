@@ -658,6 +658,264 @@ Failed response looks like this
 }
 ```
 
+## Replace limit order
+
+You can replace limit order using `PUT` limitOrder request. When you sent `POST` limitOrder request service responded with `messageId` and `nonce`. Use them to replace order. Add `tip` to raise your transaction priority. It will be used if transaction is waiting for block to finalize. Transactions with same nonce wich has highest `tip` will be in block.
+
+There are 4 scenarios:
+
+- Limit order is queued and replaced by new one
+- Limit order is queued and cancelled (send `limitPriceNew = 0`)
+- Limit order is on chain. It is cancelled and new one registered
+- Limit order is on chain and `limitPriceNew = 0`. Order is cancelled
+
+```
+PUT http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "limitPrice": 39002,
+  "limitPriceNew": 39003,
+  "amountNew": 0.1,
+  "direction": "buy",
+  "messageId": "16454558118451",
+  "nonce": 71,
+  "tip": 10
+}
+```
+
+If you send `limitPriceNew = 0` order will be cancelled.
+
+Order can be replaced and cancelled even before it is finalized in block.
+
+Possible success response looks like this
+
+```
+{
+  "success": true,
+  "payload": {
+    "message": "Limit order is creating",
+    "messageId": "16454558286312",
+    "nonce": 73,
+    "tip": 0
+  }
+}
+```
+
+## Get pending extrinsics by address
+
+To get pending createLimitOrder extrinsics send `GET`
+
+```
+GET http://127.0.0.1:3000/pendingExtrinsics/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X
+```
+
+Response is array of `eqDex.createOrder` extrinsics
+
+```
+[
+  {
+    "isSigned": true,
+    "method": {
+      "args": {
+        "asset": {
+          "0": "2,002,941,027"
+        },
+        "order_type": {
+          "Limit": {
+            "price": "38,990,000,000,000",
+            "expiration_time": "0"
+          }
+        },
+        "side": "Buy",
+        "amount": "10,000,000,000,000,000"
+      },
+      "method": "createOrder",
+      "section": "eqDex"
+    },
+    "era": {
+      "MortalEra": {
+        "period": "64",
+        "phase": "21"
+      }
+    },
+    "nonce": "780",
+    "signature": "0x94502be17d2155c99532fd12ce80e192524c2c89f948fddfe15cfc1c3f936645051526abda83d0c23eabd31af9410a951a49fc800284367aeda51cbaa7be518f",
+    "signer": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
+    "tip": "0"
+  },
+  ...
+]
+```
+
+## Working with mm pools
+
+Some actions can be made using mm pools (if you have account which masters them).
+
+Pool is created via user deposits of tokens. One pool has only one token.
+
+### Get pool info
+
+You can view pool info via
+
+```
+GET http://127.0.0.1:3000/mmPool/KSM HTTP/1.1
+```
+
+If pool exists respnonse will look like
+
+```
+[
+  {
+    "account_id": "cZj5AEB31a33YAQoiRu3TjquxQi13j8GhowFmB6TGxHpaq42H",
+    "min_amount": 10000000000,
+    "total_staked": 133000000000000,
+    "total_deposit": 132758000000000,
+    "total_borrowed": 242000000000,
+    "total_pending_withdrawals": {
+      "last_epoch": 16113,
+      "available": 0,
+      "available_next_epoch": 0,
+      "requested": 0
+    }
+  }
+]
+```
+
+Amounts has 10^9 decimals. Example above says that KSM pool has 133000 KSM deposited and 242 KSM borrowed
+
+### Pool limit for market maker
+
+Every pool can have several market makers. Each market maker can borrow X% of the pool.
+
+To find out mm limit use
+
+```
+GET http://127.0.0.1:3000/marketMaker/1/KSM HTTP/1.1
+```
+
+Response will look like
+
+```
+[
+  {
+    "weight": 400000000,
+    "borrowed": 242000000000
+  }
+]
+```
+
+Numbers has 10^9 decimals. Response above tells us that we have 40% of KSM pool and all
+manager accounts of mm with id `1` borrowed 242 KSM.
+
+### Manager accounts and trader accounts
+
+Each market maker can have several manager accounts.
+
+These accounts can be used to sign transactions for opening and cancelling orders.
+
+But manager account does not have direct access to funds.
+
+Special trader account is created and has funds borrowed from pool.
+
+To get this account address you can request
+
+```
+GET http://127.0.0.1:3000/traderAddress/cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ HTTP/1.1
+```
+
+```
+{
+  "trader": "cZiKhG57RJy9FASQrLRDnKbpEH5uCgpAREVHREkymzrVjsq76"
+}
+```
+
+Use this address just like ordinary acccount to request info such as `orders`, `balances`, `lockedBalance`, `trades` etc.
+
+Use your manager address to sign transactions when creating or deleting orders.
+
+### Deposit funds from pool to trading subaccount
+
+For signed actions you should add `"isUsingPool": true` to requests and sign them with manager account.
+
+To start trading you should deposit funds to trading account.
+Use deposit request with `address` of your manager account
+
+```
+POST http://127.0.0.1:3000/deposit HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "token": "KSM",
+  "amount": 7,
+  "isUsingPool": true
+}
+```
+
+Request is synchronous. Wait until operation is completed.
+
+Funds fill be transferred FROM POOL in request to trading subaccount.
+
+Balance precision is 10^9. Divide by 10^9 to get token amount.
+
+### Withdraw funds from trading subaccount to pool
+
+Use withdraw in similar way to return funds to pool
+
+```
+POST http://127.0.0.1:3000/withdraw HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZfMdXut7KkaRNnBSAAnzwehVwH7gZuLNNMT9D9Xv3bcqMSpQ",
+  "token": "KSM",
+  "amount": 7,
+  "isUsingPool": true
+}
+```
+
+### Register limit order
+
+To register limit order you can send request with `address` of manager
+
+The difference for pool master is `"isUsingPool": true` parameter
+
+```
+POST http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "WBTC",
+  "limitPrice": 34940,
+  "amount": 1,
+  "direction": "buy",
+  "isUsingPool": true
+}
+```
+
+### Cancel limit order
+
+To cancel limit order send `DELETE` request with `address` of manager
+
+The difference for pool master is `"isUsingPool": true` parameter
+
+```
+DELETE http://127.0.0.1:3000/limitOrder HTTP/1.1
+content-type: application/json
+
+{
+  "address": "5GC1gZuBV5YSwgkxjQrPggF2fLhQcAUeAiXnDaBUg6wJPvtK",
+  "token": "ETH",
+  "price": 3091,
+  "orderId": 58,
+  "isUsingPool": true
+}
+```
+
 ### Cancel list of limit orders
 
 You can send `DELETE` request with `orders` array
@@ -669,6 +927,7 @@ content-type: application/json
 
 {
   "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
+  "isUsingPool": true,
   "orders": [
     {
       "token": "WBTC",
@@ -860,14 +1119,9 @@ So you can compare `orders` array and `events` array. If order was successfully 
 
 ## Replace limit order
 
-You can replace limit order using `PUT` limitOrder request. When you sent `POST` limitOrder request service responded with `messageId` and `nonce`. Use them to replace order. Add `tip` to raise your transaction priority. It will be used if transaction is waiting for block to finalize. Transactions with same nonce wich has highest `tip` will be in block.
+You can replace limit order using `PUT` limitOrder request.
 
-There are 4 scenarios:
-
-- Limit order is queued and replaced by new one
-- Limit order is queued and cancelled (send `limitPriceNew = 0`)
-- Limit order is on chain. It is cancelled and new one registered
-- Limit order is on chain and `limitPriceNew = 0`. Order is cancelled
+The difference for pool master is `"isUsingPool": true` parameter
 
 ```
 PUT http://127.0.0.1:3000/limitOrder HTTP/1.1
@@ -882,72 +1136,9 @@ content-type: application/json
   "direction": "buy",
   "messageId": "16454558118451",
   "nonce": 71,
-  "tip": 10
+  "tip": 10,
+  "isUsingPool": true
 }
-```
-
-If you send `limitPriceNew = 0` order will be cancelled.
-
-Order can be replaced and cancelled even before it is finalized in block.
-
-Possible success response looks like this
-
-```
-{
-  "success": true,
-  "payload": {
-    "message": "Limit order is creating",
-    "messageId": "16454558286312",
-    "nonce": 73,
-    "tip": 0
-  }
-}
-```
-
-## Get pending extrinsics by address
-
-To get pending createLimitOrder extrinsics send `GET`
-
-```
-GET http://127.0.0.1:3000/pendingExtrinsics/cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X
-```
-
-Response is array of `eqDex.createOrder` extrinsics
-
-```
-[
-  {
-    "isSigned": true,
-    "method": {
-      "args": {
-        "asset": {
-          "0": "2,002,941,027"
-        },
-        "order_type": {
-          "Limit": {
-            "price": "38,990,000,000,000",
-            "expiration_time": "0"
-          }
-        },
-        "side": "Buy",
-        "amount": "10,000,000,000,000,000"
-      },
-      "method": "createOrder",
-      "section": "eqDex"
-    },
-    "era": {
-      "MortalEra": {
-        "period": "64",
-        "phase": "21"
-      }
-    },
-    "nonce": "780",
-    "signature": "0x94502be17d2155c99532fd12ce80e192524c2c89f948fddfe15cfc1c3f936645051526abda83d0c23eabd31af9410a951a49fc800284367aeda51cbaa7be518f",
-    "signer": "cZirADTgk9CYy2ed3y1UPh8jTmWoes2SRd1JSUDntkPpiMQ6X",
-    "tip": "0"
-  },
-  ...
-]
 ```
 
 ## Build and run
