@@ -275,15 +275,19 @@ const getBalancesByAddress$ = (
 > =>
   api$.pipe(
     switchMap((api) => api._api.query.system.account(address)),
-    map(({ data }) =>
-      data.toArray().map(([assetId, balance]) => {
+    map((res) => {
+      if (res.data.isEmpty) {
+        return [];
+      }
+
+      return res.data.toArray().map(([assetId, balance]) => {
         return {
           token: currencyFromU64(assetId),
           asset: assetId.toNumber(),
           balance: priceToBn(balance),
         };
-      })
-    )
+      });
+    })
   );
 
 export const getBalances = async (token: string, address: string) => {
@@ -583,7 +587,7 @@ export const createLimitOrder = ({
 }) => {
   const createOrderAsset = u64FromCurrency(token);
   const createOrderLimitPrice = PRICE_PRECISION.times(limitPrice).toString(10);
-  const createOrderDirection = capitalize(direction);
+  const createOrderDirection = capitalize(direction) as "Buy" | "Sell";
   const createOrderAmount = AMOUNT_PRECISION.times(amount).toString(10);
 
   const pair = keyring?.getPair(address);
@@ -598,7 +602,9 @@ export const createLimitOrder = ({
 
   const createOrder$ = api$.pipe(
     switchMap((api) => {
-      const createOrder = api.tx.dexCreateOrder;
+      const createOrder = isUsingPool
+        ? api._api.tx.eqMarketMaker.createOrder
+        : api.tx.dexCreateOrder;
       return createOrder(
         createOrderAsset,
         { Limit: { price: createOrderLimitPrice, expiration_time: 0 } },
@@ -817,7 +823,9 @@ export const cancelLimitOrder = ({
 
   const cancelOrder$ = api$.pipe(
     switchMap((api) => {
-      const deleteOrder = api.tx.dexDeleteOrder;
+      const deleteOrder = isUsingPool
+        ? api._api.tx.eqMarketMaker.deleteOrder
+        : api.tx.dexDeleteOrder;
       return deleteOrder(cancelOrderAsset, orderId, cancelOrderPrice)
         .signAndSend(cancelOrderPair, { nonce: currentNonce })
         .pipe(
@@ -843,7 +851,9 @@ export const cancelLimitOrders = async ({
 
   const cancelOrders$ = api$.pipe(
     map((api) => {
-      const deleteOrder = api.tx.dexDeleteOrder;
+      const deleteOrder = isUsingPool
+        ? api._api.tx.eqMarketMaker.deleteOrder
+        : api.tx.dexDeleteOrder;
 
       return orders.map(({ token, price, orderId }) => {
         const currentNonce = nonces.get(address);
