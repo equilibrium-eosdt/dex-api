@@ -658,6 +658,206 @@ Failed response looks like this
 }
 ```
 
+### Cancel list of limit orders
+
+You can send `DELETE` request with `orders` array
+to cancel list of limit orders
+
+```
+DELETE http://127.0.0.1:3000/limitOrders HTTP/1.1
+content-type: application/json
+
+{
+  "address": "cZifcgcutJWjcCnLheB1Zv3LMkB1jLkiREWdE5hYyGZNx97uF",
+  "orders": [
+    {
+      "token": "WBTC",
+      "price": 42900,
+      "orderId": 123415
+    },
+    {
+      "token": "WBTC",
+      "price": 42900,
+      "orderId": 123416
+    },
+    {
+      "token": "WBTC",
+      "price": 42900,
+      "orderId": 123417
+    }
+  ]
+}
+```
+
+You get response with `messageId`
+
+```
+{
+  "success": true,
+  "payload": {
+    "message": "Orders are cancelling",
+    "messageId": "16524431221121",
+    "orders": [
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123415
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123416
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123417
+      }
+    ],
+    "events": []
+  }
+}
+```
+
+Use it to get orders statuses in events array with `GET http://127.0.0.1:3000/limitOrder/16524431221121 HTTP/1.1`
+If everything is ok you will receive
+
+```
+{
+  "success": true,
+  "pending": false,
+  "payload": {
+    "message": "Orders are cancelling",
+    "messageId": "16524431221121",
+    "orders": [
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123415
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123416
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123417
+      }
+    ],
+    "events": [
+      {
+        "success": true,
+        "pending": false,
+        "payload": [
+          {
+            "orderId": "123415"
+          },
+          {
+            "index": "0x0000",
+            "data": [
+              {
+                "weight": 700300000,
+                "class": "Normal",
+                "paysFee": "Yes"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "success": true,
+        "pending": false,
+        "payload": [
+          {
+            "orderId": "123416"
+          },
+          {
+            "index": "0x0000",
+            "data": [
+              {
+                "weight": 700300000,
+                "class": "Normal",
+                "paysFee": "Yes"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "success": true,
+        "pending": false,
+        "payload": [
+          {
+            "orderId": "123417"
+          },
+          {
+            "index": "0x0000",
+            "data": [
+              {
+                "weight": 700300000,
+                "class": "Normal",
+                "paysFee": "Yes"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+If error happens you will see them in events array:
+
+```
+{
+  "success": true,
+  "pending": false,
+  "payload": {
+    "message": "Orders are cancelling",
+    "messageId": "16524433895092",
+    "orders": [
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123415
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123416
+      },
+      {
+        "token": "WBTC",
+        "price": 42900,
+        "orderId": 123417
+      }
+    ],
+    "events": [
+      {
+        "success": false,
+        "pending": false,
+        "error": "Error: eqDex.OrderNotFound:  No order found by id and price"
+      },
+      {
+        "success": false,
+        "pending": false,
+        "error": "Error: eqDex.OrderNotFound:  No order found by id and price"
+      },
+      {
+        "success": false,
+        "pending": false,
+        "error": "Error: eqDex.OrderNotFound:  No order found by id and price"
+      }
+    ]
+  }
+}
+```
+
+So you can compare `orders` array and `events` array. If order was successfully cancelled if will have `success: true` and payload with `{ orderId }`
+
 ## Replace limit order
 
 You can replace limit order using `PUT` limitOrder request. When you sent `POST` limitOrder request service responded with `messageId` and `nonce`. Use them to replace order. Add `tip` to raise your transaction priority. It will be used if transaction is waiting for block to finalize. Transactions with same nonce wich has highest `tip` will be in block.
