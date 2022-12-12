@@ -1,3 +1,19 @@
+
+###
+GET http://127.0.0.1:3000/orderBook/DOT?depth=2 HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/balances/DOT/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/lockedBalance/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/orders/DOT HTTP/1.1
+
+###
+GET http://127.0.0.1:3000/orders/DOT/cg7ENkxLYjpXV2QWjw5murokf8ZxUNkjjhCkqqxxAP7svN49A HTTP/1.1
+
 ###
 GET http://127.0.0.1:3000/chainId HTTP/1.1
 

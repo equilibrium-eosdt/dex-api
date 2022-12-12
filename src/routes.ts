@@ -21,9 +21,6 @@ import {
   getDepth,
   getToken,
   getChainId,
-  getMmPoolByToken,
-  getTraderAddress,
-  getMarketMaker,
 } from "./api";
 
 import {
@@ -161,47 +158,6 @@ export const routes = async (server: FastifyInstance) => {
     }
   );
 
-  server.get(
-    "/mmPool/:token",
-    async (request: FastifyRequest<{ Params: { token: string } }>) => {
-      return await getMmPoolByToken(request.params.token);
-    }
-  );
-
-  server.get(
-    "/traderAddress/:address",
-    { schema: addressSchema },
-    async (request: FastifyRequest<{ Params: { address: string } }>) => {
-      return await getTraderAddress(request.params.address);
-    }
-  );
-
-  server.get(
-    "/balancesMm/:token/:address",
-    { schema: balancesSchema },
-    async (
-      request: FastifyRequest<{ Params: { token: string; address: string } }>
-    ) => {
-      const { token, address } = request.params;
-      const { trader } = await getTraderAddress(address);
-
-      if (typeof trader !== "string")
-        return { success: false, error: "Trader address not found" };
-
-      return await getBalances(token, trader);
-    }
-  );
-
-  server.get(
-    "/marketMaker/:mmId/:token",
-    async (
-      request: FastifyRequest<{ Params: { mmId: number; token: string } }>
-    ) => {
-      const { mmId, token } = request.params;
-      return await getMarketMaker(token, mmId);
-    }
-  );
-
   server.post(
     "/sudo/deposit",
     { schema: depositSchema },
@@ -225,13 +181,12 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof deposit>[0] }>
     ) => {
-      const { token, amount, address, isUsingPool } = request.body;
+      const { token, amount, address } = request.body;
 
       return await deposit({
         token,
         amount,
         address,
-        isUsingPool,
       });
     }
   );
@@ -242,13 +197,12 @@ export const routes = async (server: FastifyInstance) => {
     async (
       request: FastifyRequest<{ Body: Parameters<typeof withdraw>[0] }>
     ) => {
-      const { token, amount, address, isUsingPool } = request.body;
+      const { token, amount, address } = request.body;
 
       return await withdraw({
         token,
         amount,
         address,
-        isUsingPool,
       });
     }
   );

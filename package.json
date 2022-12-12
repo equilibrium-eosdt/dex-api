@@ -12,7 +12,7 @@
     "inspect": "source .env && node --inspect=0.0.0.0:9229 --require ts-node/register src/server.ts"
   },
   "dependencies": {
-    "@equilab/api": "1.13.1",
+    "@equilab/api": "1.14.10",
     "abort-controller": "3.0.0",
     "bignumber.js": "9.0.2",
     "dotenv": "16.0.0",
@@ -20,7 +20,7 @@
     "fs": "0.0.1-security",
     "isomorphic-fetch": "3.0.0",
     "querystring": "0.2.1",
-    "rxjs": "7.5.6"
+    "rxjs": "7.6.0"
   },
   "devDependencies": {
     "@types/node": "14.18.1",
